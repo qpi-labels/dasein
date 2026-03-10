@@ -49,7 +49,7 @@
 
             <div class="vhs-footer">
                 <div class="vhs-label-bar">
-                    <span class="brand-name">Dasein; Local AI</span>
+                    <span class="brand-name">Dasein;</span>
                     <span id="ollama-status" style="margin-left:auto; font-size:10px;">CONNECTED</span>
                 </div>
                 <div class="vhs-stripes">
@@ -67,11 +67,6 @@
                 <p class="intro-desc">
                     독일어 <b>Dasein</b>[다자인]은 '거기(Da)에 있음(Sein)'을 의미하며,<br>
                     하이데거 철학에서 다자인은 자신의 존재 이유를 스스로 묻는 탐구자를 의미합니다.
-                </p>
-                <br>
-                <p class="intro-desc">
-                    로컬 시스템(Ollama)과 연동된 <b>Dasein;</b>은 당신의 사유가 외부로 유출되지 않는<br>
-                    안전하고 독립적인 연구 환경을 제공합니다.
                 </p>
             </div>
 
@@ -102,9 +97,9 @@
             const summaryContent = document.getElementById('ai-summary-content');
             const summaryBtn = document.getElementById('btn-generate-summary');
 
-            summaryBtn.innerText = '로컬 AI 분석 중...';
+            summaryBtn.innerText = 'AI 분석 중...';
             summaryBtn.disabled = true;
-            summaryContent.innerHTML = '<div class="loading-spinner"></div><p style="display:inline-block; margin:0;">내 PC의 AI가 연구 동향을 분석 중입니다...</p>';
+            summaryContent.innerHTML = '<div class="loading-spinner"></div><p style="display:inline-block; margin:0;">Dasein; AI가 연구 동향을 분석 중입니다...</p>';
             
             try {
                 let resultsContext = `검색어: ${query}\n\n`;
