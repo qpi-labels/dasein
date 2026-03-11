@@ -24,6 +24,53 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/11.1.1/marked.min.js"></script>
     
     <link rel="stylesheet" href="style.css?v=1.6">
+
+    <style>
+        /* Ollama 상태 및 도움말 아이콘 스타일 */
+        #ollama-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .status-help-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 14px;
+            height: 14px;
+            border: 1px solid #ff6b6b;
+            border-radius: 50%;
+            font-size: 10px;
+            cursor: pointer;
+            color: #ff6b6b;
+            font-weight: bold;
+            transition: all 0.2s;
+            line-height: 1;
+        }
+        .status-help-icon:hover {
+            background: #ff6b6b;
+            color: #000;
+        }
+
+        /* 오프라인 안내 모달 스타일 */
+        .status-modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center;
+            z-index: 9999; backdrop-filter: blur(5px);
+        }
+        .status-modal-content {
+            background: #151515; padding: 30px; border-radius: 12px; border: 1px solid #333;
+            max-width: 340px; width: 90%; text-align: center; color: #eee;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        .status-modal-header { font-weight: bold; font-size: 1.1rem; margin-bottom: 15px; color: #ff6b6b; letter-spacing: -0.5px; }
+        .status-modal-body { font-size: 0.9rem; line-height: 1.6; margin-bottom: 25px; text-align: left; color: #bbb; }
+        .status-modal-btn { 
+            background: #eee; color: #000; border: none; padding: 10px 25px; border-radius: 6px; cursor: pointer;
+            font-weight: bold; font-family: 'Pretendard', sans-serif; transition: opacity 0.2s;
+        }
+        .status-modal-btn:hover { opacity: 0.8; }
+    </style>
 </head>
 <body>
     <div class="paper-grain"></div>
@@ -50,7 +97,10 @@
             <div class="vhs-footer">
                 <div class="vhs-label-bar">
                     <span class="brand-name">Dasein;</span>
-                    <span id="ollama-status" style="margin-left:auto; font-size:10px;">CONNECTED</span>
+                    <span id="ollama-status" style="margin-left:auto; font-size:10px;">
+                        <span id="ollama-status-text">CHECKING...</span>
+                        <span id="ollama-help-trigger"></span>
+                    </span>
                 </div>
                 <div class="vhs-stripes">
                     <div class="stripe s-3"></div>
@@ -75,12 +125,27 @@
 
     </div>
 
+    <div id="status-modal" class="status-modal-overlay">
+        <div class="status-modal-content">
+            <div class="status-modal-header">서버 연결 확인 필요</div>
+            <div class="status-modal-body">
+                현재 Dasein; AI 서버에 접속할 수 없습니다.<br><br>
+                
+                · Dasein; 연구 주제 추천 AI는 충남과학고등학교 내 서버를 통해 제공됩니다. 충남과학고등학교의 현재 상황에 따라 서버와의 연결이 끊어질 수 있습니다.<br><br>
+                · 서버의 전원이 끊어진 경우, 전원이 복구된 즉시 서버가 다시 실행되도록 설계되어 있으니 잠시만 기다려주세요.<br><br>
+                · 장시간 연결이 되지 않는 경우, 쿼터파이 담당자에 문의하여 서버 상태를 확인해주시기 바랍니다.<br><br>
+                · 서버 연결이 끊어진 경우에도 AI 기능을 제외한 기타 기능은 모두 사용할 수 있습니다.
+            </div>
+            <button class="status-modal-btn" onclick="closeStatusModal()">확인</button>
+        </div>
+    </div>
+
     <script>
         // --- [사용자 설정 항목] ---
-        // Cloudflare Tunnel로 연결한 본인의 도메인 주소로 수정하세요.
         const OLLAMA_CONFIG = {
+            base_url: 'https://ai.qpi.digital',
             endpoint: 'https://ai.qpi.digital/api/chat', 
-            model: 'gemma3:4b' // PC에 설치된 모델명 (gemma2, llama3 등)
+            model: 'gemma3:4b' 
         };
         // -----------------------
 
@@ -89,90 +154,112 @@
         let currentResults = [];
         let currentResultsString = '';
 
+        // 모달 제어 함수
+        function openStatusModal() { document.getElementById('status-modal').style.display = 'flex'; }
+        function closeStatusModal() { document.getElementById('status-modal').style.display = 'none'; }
+
+        // Ollama 상태 확인 함수
+        async function checkOllamaStatus() {
+            const statusText = document.getElementById('ollama-status-text');
+            const helpTrigger = document.getElementById('ollama-help-trigger');
+            
+            try {
+                // 루트 경로에서 "Ollama is running" 응답 확인
+                const response = await fetch(OLLAMA_CONFIG.base_url, { 
+                    method: 'GET', 
+                    mode: 'cors',
+                    cache: 'no-cache'
+                });
+
+                if (response.ok) {
+                    const text = await response.text();
+                    if (text.includes('Ollama is running')) {
+                        statusText.innerHTML = 'ONLINE <span style="color:#00ff00;">🟢</span>';
+                        helpTrigger.innerHTML = '';
+                        return;
+                    }
+                }
+                throw new Error('Not Running');
+            } catch (error) {
+                statusText.innerHTML = 'OFFLINE <span style="color:#ff6b6b;">🔴</span>';
+                helpTrigger.innerHTML = '<span class="status-help-icon" onclick="openStatusModal()">?</span>';
+            }
+        }
+
         function triggerSummary() {
             if (currentQuery && currentResults.length > 0) generateSummary(currentQuery, currentResults);
         }
 
         async function generateSummary(query, searchResults) {
-    const summaryContent = document.getElementById('ai-summary-content');
-    const summaryBtn = document.getElementById('btn-generate-summary');
+            const summaryContent = document.getElementById('ai-summary-content');
+            const summaryBtn = document.getElementById('btn-generate-summary');
 
-    summaryBtn.innerText = 'AI 분석 중...';
-    summaryBtn.disabled = true;
-    summaryContent.innerHTML = '<div class="loading-spinner"></div><p style="display:inline-block; margin:0;">Dasein; AI가 연구 동향을 분석 중입니다...</p>';
-    
-    try {
-        let resultsContext = `검색어: ${query}\n\n`;
-        searchResults.forEach((res, i) => { 
-            resultsContext += `${i + 1}. ${res.title}\n${res.snippet}\n\n`; 
-        });
-        
-        const systemPrompt = `당신은 뛰어난 학술 연구 조언가입니다. 제공된 검색 결과와 데이터를 바탕으로 다음 두 가지를 작성:
+            summaryBtn.innerText = 'AI 분석 중...';
+            summaryBtn.disabled = true;
+            summaryContent.innerHTML = '<div class="loading-spinner"></div><p style="display:inline-block; margin:0;">Dasein; AI가 연구 동향을 분석 중입니다...</p>';
+            
+            try {
+                let resultsContext = `검색어: ${query}\n\n`;
+                searchResults.forEach((res, i) => { 
+                    resultsContext += `${i + 1}. ${res.title}\n${res.snippet}\n\n`; 
+                });
+                
+                const systemPrompt = `당신은 뛰어난 학술 연구 조언가입니다. 제공된 검색 결과와 데이터를 바탕으로 다음 두 가지를 작성:
 1. 해당 주제의 핵심 개념 및 현재 학술적 동향에 대한 간략한 소개 (2-3문장 내외)
 2. 창의적이고 심도 있는 구체적인 [연구 주제 3~5가지] 추천. 검색 결과를 그대로 읊는게 아니라, 검색 결과를 종합해 창의적인 주제를 추천할 것.
 각 연구 주제에는 추천하는 이유와 구체적인 탐구 방향을 간략히 포함. 마크다운 문법을 사용하되, 인사말 없이 본론만 출력.`;
 
-        // Ollama API 호출 (stream: true 설정)
-        const response = await fetch(OLLAMA_CONFIG.endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                model: OLLAMA_CONFIG.model, 
-                messages: [
-                    { role: 'system', content: systemPrompt },
-                    { role: 'user', content: `검색어 "${query}"에 대한 학술 검색 결과들입니다:\n${resultsContext}` }
-                ],
-                stream: true // 스트리밍 활성화
-            })
-        });
+                const response = await fetch(OLLAMA_CONFIG.endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: OLLAMA_CONFIG.model, 
+                        messages: [
+                            { role: 'system', content: systemPrompt },
+                            { role: 'user', content: `검색어 "${query}"에 대한 학술 검색 결과들입니다:\n${resultsContext}` }
+                        ],
+                        stream: true
+                    })
+                });
 
-        if (!response.ok) throw new Error('Ollama 서버 응답 실패. 터널 상태를 확인하세요.');
+                if (!response.ok) throw new Error('Ollama 서버 응답 실패. 터널 상태를 확인하세요.');
 
-        // 스트림 읽기 준비
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let fullText = '';
-        
-        // 초기 로딩 메시지 제거
-        summaryContent.innerHTML = '';
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let fullText = '';
+                summaryContent.innerHTML = '';
 
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
 
-            // 받아온 바이너리 데이터를 텍스트로 변환
-            const chunk = decoder.decode(value, { stream: true });
-            
-            // Ollama는 여러 JSON 객체를 줄바꿈으로 구분하여 보냅니다.
-            const lines = chunk.split('\n');
-            
-            for (const line of lines) {
-                if (!line.trim()) continue;
-                try {
-                    const json = JSON.parse(line);
-                    if (json.message && json.message.content) {
-                        fullText += json.message.content;
-                        // 마크다운 실시간 렌더링
-                        summaryContent.innerHTML = marked.parse(fullText);
-                        
-                        // 스크롤을 아래로 유지 (선택 사항)
-                        const scrollArea = document.querySelector('.ai-summary-scroll-area');
-                        if (scrollArea) scrollArea.scrollTop = scrollArea.scrollHeight;
+                    const chunk = decoder.decode(value, { stream: true });
+                    const lines = chunk.split('\n');
+                    
+                    for (const line of lines) {
+                        if (!line.trim()) continue;
+                        try {
+                            const json = JSON.parse(line);
+                            if (json.message && json.message.content) {
+                                fullText += json.message.content;
+                                summaryContent.innerHTML = marked.parse(fullText);
+                                const scrollArea = document.querySelector('.ai-summary-scroll-area');
+                                if (scrollArea) scrollArea.scrollTop = scrollArea.scrollHeight;
+                            }
+                            if (json.done) break;
+                        } catch (e) {
+                            console.error("JSON 파싱 에러:", e);
+                        }
                     }
-                    if (json.done) break;
-                } catch (e) {
-                    console.error("JSON 파싱 에러:", e);
                 }
+
+            } catch (error) {
+                summaryContent.innerHTML = `<p style="color: #ff6b6b;">오류 발생: ${error.message}</p>`;
+            } finally {
+                summaryBtn.innerText = '다시 추천받기';
+                summaryBtn.disabled = false;
             }
         }
-
-    } catch (error) {
-        summaryContent.innerHTML = `<p style="color: #ff6b6b;">오류 발생: ${error.message}</p>`;
-    } finally {
-        summaryBtn.innerText = '다시 추천받기';
-        summaryBtn.disabled = false;
-    }
-}
 
         // 결과 감지 로직
         const resultsObserver = new MutationObserver(() => {
@@ -188,18 +275,14 @@
 
                 if (extractedResults.length > 0 && extractedResults[0].title !== '') {
                     const newResultsString = JSON.stringify(extractedResults);
-
                     if (query !== currentQuery || newResultsString !== currentResultsString) {
                         currentQuery = query;
                         currentResults = extractedResults;
                         currentResultsString = newResultsString;
-
                         const introSection = document.getElementById('intro-section');
                         if (introSection) introSection.style.display = 'none';
-
                         document.getElementById('ai-summary-container').style.display = 'block';
                         document.getElementById('ai-summary-content').innerHTML = '<p style="padding: 10px 0;">위의 버튼을 눌러 연구 주제를 추천받으세요.</p>';
-                        
                         const summaryBtn = document.getElementById('btn-generate-summary');
                         summaryBtn.innerText = '연구 주제 추천받기';
                         summaryBtn.disabled = false;
@@ -209,15 +292,12 @@
         });
         resultsObserver.observe(document.body, { childList: true, subtree: true });
 
-        // UI 클리너 (Google Search UI 최적화)
+        // UI 클리너
         const uiCleanerObserver = new MutationObserver(() => {
             const junkSelectors = ['.gsc-branding', '.gcsc-branding', '.gsc-watermark', '.gsc-tabsArea', '.gsc-above-wrapper-area', '.gsc-adBlock', '.gsc-orderby-container'];
             junkSelectors.forEach(sel => {
-                document.querySelectorAll(sel).forEach(el => {
-                    el.style.setProperty('display', 'none', 'important');
-                });
+                document.querySelectorAll(sel).forEach(el => { el.style.setProperty('display', 'none', 'important'); });
             });
-
             document.querySelectorAll('.gsc-webResult.gsc-result').forEach(card => {
                 if (!card.dataset.clickable) {
                     card.dataset.clickable = "true";
@@ -233,6 +313,12 @@
             });
         });
         uiCleanerObserver.observe(document.body, { childList: true, subtree: true });
+
+        // 초기화
+        window.addEventListener('DOMContentLoaded', () => {
+            checkOllamaStatus();
+            setInterval(checkOllamaStatus, 5000); // 30초마다 자동 체크
+        });
     </script>
 </body>
 </html>
