@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#000000">
+    <link rel="manifest" href="manifest.json">
+    <link rel="shortcut icon" type="image/x-icon" href="./logo.ico">
+    
+    <title>Dasein;</title>
+
+    <meta property="og:url" content="https://dasein.qpi.digital/">
+    <meta property="og:title" content="Dasein;">
+    <meta property="og:type" content="website">
+    <meta property="og:logo" content="./logo.ico" />
+    <meta property="og:image" content="/OG.png"> 
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+    
+    <script async src="https://cse.google.com/cse.js?cx=b794e851ac2524ee7"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/11.1.1/marked.min.js"></script>
+    
+    <link rel="stylesheet" href="style.css?v=1.6">
+</head>
+<body>
+    <div class="paper-grain"></div>
+    <div class="fixed-vertical-line"></div>
+
+    <div class="layout-grid">
+        
+        <aside class="left-panel">
+            <h1 class="main-title">Dasein;</h1>
+            
+            <div class="search-container">
+                <div class="gcse-searchbox" data-mobileLayout="disabled"></div>
+            </div>
+
+            <div id="ai-summary-container" style="display: none;">
+                <div class="ai-summary-box">
+                    <button id="btn-generate-summary" class="summary-badge" onclick="triggerSummary()">연구 주제 추천받기</button>
+                    <div class="ai-summary-scroll-area">
+                        <div id="ai-summary-content"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="vhs-footer">
+                <div class="vhs-label-bar">
+                    <span class="brand-name">Dasein;</span>
+                    <span id="ollama-status" style="margin-left:auto; font-size:10px;">CONNECTED</span>
+                </div>
+                <div class="vhs-stripes">
+                    <div class="stripe s-3"></div>
+                    <div class="stripe s-2"></div>
+                    <div class="stripe s-1"></div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="right-panel">
+            <div id="intro-section">
+                <h2 class="intro-heading">Being-there.</h2>
+                <div class="intro-divider"></div>
+                <p class="intro-desc">
+                    독일어 <b>Dasein</b>[다자인]은 '거기(Da)에 있음(Sein)'을 의미하며,<br>
+                    하이데거 철학에서 다자인은 자신의 존재 이유를 스스로 묻는 탐구자를 의미합니다.
+                </p>
+            </div>
+
+            <div class="gcse-searchresults" data-mobileLayout="disabled"></div>
+        </main>
+
+    </div>
+
+    <script>
+        // --- [사용자 설정 항목] ---
+        // Cloudflare Tunnel로 연결한 본인의 도메인 주소로 수정하세요.
+        const OLLAMA_CONFIG = {
+            endpoint: 'https://ai.qpi.digital/api/chat', 
+            model: 'gemma3:4b' // PC에 설치된 모델명 (gemma2, llama3 등)
+        };
+        // -----------------------
+
+        marked.setOptions({ breaks: true, gfm: true });
+        let currentQuery = '';
+        let currentResults = [];
+        let currentResultsString = '';
+
+        function triggerSummary() {
+            if (currentQuery && currentResults.length > 0) generateSummary(currentQuery, currentResults);
+        }
+
+        async function generateSummary(query, searchResults) {
+    const summaryContent = document.getElementById('ai-summary-content');
+    const summaryBtn = document.getElementById('btn-generate-summary');
+
+    summaryBtn.innerText = 'AI 분석 중...';
+    summaryBtn.disabled = true;
+    summaryContent.innerHTML = '<div class="loading-spinner"></div><p style="display:inline-block; margin:0;">Dasein; AI가 연구 동향을 분석 중입니다...</p>';
+    
+    try {
+        let resultsContext = `검색어: ${query}\n\n`;
+        searchResults.forEach((res, i) => { 
+            resultsContext += `${i + 1}. ${res.title}\n${res.snippet}\n\n`; 
+        });
+        
+        const systemPrompt = `당신은 뛰어난 학술 연구 조언가입니다. 제공된 검색 결과와 데이터를 바탕으로 다음 두 가지를 작성:
+1. 해당 주제의 핵심 개념 및 현재 학술적 동향에 대한 간략한 소개 (2-3문장 내외)
+2. 창의적이고 심도 있는 구체적인 [연구 주제 3~5가지] 추천. 검색 결과를 그대로 읊는게 아니라, 검색 결과를 종합해 창의적인 주제를 추천할 것.
+각 연구 주제에는 추천하는 이유와 구체적인 탐구 방향을 간략히 포함. 마크다운 문법을 사용하되, 인사말 없이 본론만 출력.`;
+
+        // Ollama API 호출 (stream: true 설정)
+        const response = await fetch(OLLAMA_CONFIG.endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: OLLAMA_CONFIG.model, 
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: `검색어 "${query}"에 대한 학술 검색 결과들입니다:\n${resultsContext}` }
+                ],
+                stream: true // 스트리밍 활성화
+            })
+        });
+
+        if (!response.ok) throw new Error('Ollama 서버 응답 실패. 터널 상태를 확인하세요.');
+
+        // 스트림 읽기 준비
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullText = '';
+        
+        // 초기 로딩 메시지 제거
+        summaryContent.innerHTML = '';
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            // 받아온 바이너리 데이터를 텍스트로 변환
+            const chunk = decoder.decode(value, { stream: true });
+            
+            // Ollama는 여러 JSON 객체를 줄바꿈으로 구분하여 보냅니다.
+            const lines = chunk.split('\n');
+            
+            for (const line of lines) {
+                if (!line.trim()) continue;
+                try {
+                    const json = JSON.parse(line);
+                    if (json.message && json.message.content) {
+                        fullText += json.message.content;
+                        // 마크다운 실시간 렌더링
+                        summaryContent.innerHTML = marked.parse(fullText);
+                        
+                        // 스크롤을 아래로 유지 (선택 사항)
+                        const scrollArea = document.querySelector('.ai-summary-scroll-area');
+                        if (scrollArea) scrollArea.scrollTop = scrollArea.scrollHeight;
+                    }
+                    if (json.done) break;
+                } catch (e) {
+                    console.error("JSON 파싱 에러:", e);
+                }
+            }
+        }
+
+    } catch (error) {
+        summaryContent.innerHTML = `<p style="color: #ff6b6b;">오류 발생: ${error.message}</p>`;
+    } finally {
+        summaryBtn.innerText = '다시 추천받기';
+        summaryBtn.disabled = false;
+    }
+}
+
+        // 결과 감지 로직
+        const resultsObserver = new MutationObserver(() => {
+            const results = document.querySelectorAll('.gsc-webResult.gsc-result');
+            const searchInput = document.querySelector('input.gsc-input');
+            const query = searchInput ? searchInput.value.trim() : '';
+
+            if (results.length > 0 && query) {
+                const extractedResults = Array.from(results).map(el => ({
+                    title: el.querySelector('.gs-title')?.textContent.trim() || '',
+                    snippet: el.querySelector('.gs-snippet')?.textContent.trim() || ''
+                })).slice(0, 10);
+
+                if (extractedResults.length > 0 && extractedResults[0].title !== '') {
+                    const newResultsString = JSON.stringify(extractedResults);
+
+                    if (query !== currentQuery || newResultsString !== currentResultsString) {
+                        currentQuery = query;
+                        currentResults = extractedResults;
+                        currentResultsString = newResultsString;
+
+                        const introSection = document.getElementById('intro-section');
+                        if (introSection) introSection.style.display = 'none';
+
+                        document.getElementById('ai-summary-container').style.display = 'block';
+                        document.getElementById('ai-summary-content').innerHTML = '<p style="padding: 10px 0;">위의 버튼을 눌러 연구 주제를 추천받으세요.</p>';
+                        
+                        const summaryBtn = document.getElementById('btn-generate-summary');
+                        summaryBtn.innerText = '연구 주제 추천받기';
+                        summaryBtn.disabled = false;
+                    }
+                }
+            }
+        });
+        resultsObserver.observe(document.body, { childList: true, subtree: true });
+
+        // UI 클리너 (Google Search UI 최적화)
+        const uiCleanerObserver = new MutationObserver(() => {
+            const junkSelectors = ['.gsc-branding', '.gcsc-branding', '.gsc-watermark', '.gsc-tabsArea', '.gsc-above-wrapper-area', '.gsc-adBlock', '.gsc-orderby-container'];
+            junkSelectors.forEach(sel => {
+                document.querySelectorAll(sel).forEach(el => {
+                    el.style.setProperty('display', 'none', 'important');
+                });
+            });
+
+            document.querySelectorAll('.gsc-webResult.gsc-result').forEach(card => {
+                if (!card.dataset.clickable) {
+                    card.dataset.clickable = "true";
+                    card.style.cursor = 'pointer';
+                    card.addEventListener('click', function(e) {
+                        if(window.getSelection().toString().length > 0) return;
+                        if(e.target.tagName !== 'A') {
+                            const link = this.querySelector('.gs-title a');
+                            if(link) link.click();
+                        }
+                    });
+                }
+            });
+        });
+        uiCleanerObserver.observe(document.body, { childList: true, subtree: true });
+    </script>
+</body>
+</html>
