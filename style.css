@@ -304,29 +304,68 @@ input.gsc-input:focus { box-shadow: 0 0 0 3px rgba(139, 31, 40, 0.1) !important;
    답변 지연 안내 (답변이 느린가요?)
 ----------------------------------- */
 .slow-response-container {
-    margin-top: 4px;
+    margin-top: 6px;
     font-family: var(--font-sans);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
 }
+
 .slow-response-btn {
-    font-size: 0.8rem;
-    color: #888;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: rgba(40, 40, 40, 0.6);
     cursor: pointer;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    transition: color 0.2s ease;
+    background-color: rgba(40, 40, 40, 0.04);
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid rgba(40, 40, 40, 0.05);
+    transition: all 0.3s ease;
+    user-select: none;
+    letter-spacing: -0.02em;
 }
+
 .slow-response-btn:hover {
     color: var(--red-dark);
+    background-color: rgba(139, 31, 40, 0.04);
+    border-color: rgba(139, 31, 40, 0.15);
+    box-shadow: 0 3px 8px rgba(139, 31, 40, 0.06);
 }
+
+.slow-response-btn svg {
+    width: 13px;
+    height: 13px;
+    fill: currentColor;
+    opacity: 0.8;
+}
+
 .slow-response-desc {
-    margin-top: 8px;
     font-size: 0.8rem;
-    color: var(--text);
-    background-color: rgba(139, 31, 40, 0.05); /* very light red */
+    color: #555;
+    background: linear-gradient(135deg, rgba(139, 31, 40, 0.02), rgba(139, 31, 40, 0.06));
+    border: 1px solid rgba(139, 31, 40, 0.1);
     border-left: 3px solid var(--red-dark);
-    padding: 10px 14px;
-    border-radius: 4px 4px 4px 0;
-    line-height: 1.5;
+    line-height: 1.6;
+    border-radius: 2px 10px 10px 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    
+    max-height: 0;
+    opacity: 0;
+    padding: 0 16px;
+    margin-top: 0;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    word-break: keep-all;
+}
+
+.slow-response-desc.show {
+    max-height: 200px;
+    opacity: 1;
+    padding: 12px 16px;
+    margin-top: 10px;
 }
 
 /* ----------------------------------

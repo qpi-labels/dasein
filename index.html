@@ -132,11 +132,14 @@
                 <div style="display: flex; align-items: flex-start; gap: 8px;">
                     <div class="loading-spinner" style="margin-top: 4px;"></div>
                     <div style="display: flex; flex-direction: column; gap: 4px;">
-                        <p style="margin:0;">Dasein; AI 대기열에 있습니다. 잠시만 기다려 주세요.</p>
+                        <p style="margin:0;">Dasein; AI가 연구 동향을 분석 중입니다...</p>
                         <div class="slow-response-container">
-                            <span class="slow-response-btn" onclick="const desc = this.nextElementSibling; desc.style.display = desc.style.display === 'none' ? 'block' : 'none';">↳ 답변이 느린가요?</span>
-                            <div class="slow-response-desc" style="display: none;">
-                                현재 단일 GPU 서버 환경에서 딥러닝 추론 연산을 순차적으로 수행 중입니다.<br>서버 측 작업 대기열 상태에 따라 응답까지 다소 시간이 소요될 수 있습니다.
+                            <div class="slow-response-btn" onclick="this.nextElementSibling.classList.toggle('show')">
+                                <svg viewBox="0 0 24 24"><path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"/></svg>
+                                답변이 약간 지연되고 있나요?
+                            </div>
+                            <div class="slow-response-desc">
+                                현재 제한된 단일 GPU 노드에서 집중적인 심층 추론(Deep Inference)을 수행하고 있습니다.<br>트래픽에 따른 작업 대기열 상태에 따라 응답 수신까지 다소 시간이 소요될 수 있습니다.
                             </div>
                         </div>
                     </div>
