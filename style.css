@@ -191,9 +191,8 @@ input.gsc-input:focus { box-shadow: 0 0 0 3px rgba(139, 31, 40, 0.1) !important;
 #ai-summary-content { font-size: 0.95rem; line-height: 1.7; color: var(--text); padding: 10px 0; }
 #ai-summary-content p { margin-bottom: 10px; }
 #ai-summary-content h1, #ai-summary-content h2, #ai-summary-content h3 { font-size: 1.1rem; color: var(--red-dark); margin: 15px 0 10px 0; }
-#ai-summary-content ul, #ai-summary-content ol { padding-left: 20px; margin: 10px 0; }
+#ai-summary-content ul { padding-left: 20px; margin: 10px 0; }
 #ai-summary-content strong { color: var(--text); font-weight: 700; }
-#ai-summary-content .katex-display { overflow-x: auto; overflow-y: hidden; padding-bottom: 4px; }
 
 /* ----------------------------------
    검색 결과 커스텀
