@@ -99,6 +99,29 @@
             if (currentQuery && currentResults.length > 0) generateSummary(currentQuery, currentResults);
         }
 
+        function parseWithThinking(text) {
+            let outputHtml = '';
+            let parts = text.split(/<think>|<\/think>/);
+
+            for (let i = 0; i < parts.length; i++) {
+                if (i % 2 === 1) {
+                    const isClosed = i < parts.length - 1;
+                    const summaryText = isClosed ? 'AI 사고 과정 보기' : 'AI가 생각을 정리하고 있습니다...';
+                    const openAttr = isClosed ? '' : 'open';
+                    let contentProcess = marked.parse(parts[i]);
+                    if (!isClosed) {
+                        contentProcess += '<span class="thinking-cursor"></span>';
+                    }
+                    outputHtml += `<details class="ai-thinking" ${openAttr}><summary>${summaryText}</summary><div class="thinking-content">${contentProcess}</div></details>`;
+                } else {
+                    if (parts[i].trim()) {
+                        outputHtml += marked.parse(parts[i]);
+                    }
+                }
+            }
+            return outputHtml;
+        }
+
         async function generateSummary(query, searchResults) {
             const summaryContent = document.getElementById('ai-summary-content');
             const summaryBtn = document.getElementById('btn-generate-summary');
@@ -171,7 +194,7 @@
                             if (json.message && json.message.content) {
                                 fullText += json.message.content;
                                 // 마크다운 실시간 렌더링
-                                summaryContent.innerHTML = marked.parse(fullText);
+                                summaryContent.innerHTML = parseWithThinking(fullText);
 
                                 // 스크롤을 아래로 유지 (선택 사항)
                                 const scrollArea = document.querySelector('.ai-summary-scroll-area');

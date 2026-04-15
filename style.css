@@ -330,6 +330,55 @@ input.gsc-input:focus { box-shadow: 0 0 0 3px rgba(139, 31, 40, 0.1) !important;
 }
 
 /* ----------------------------------
+   AI Thinking (사고 과정)
+----------------------------------- */
+.ai-thinking {
+    margin: 15px 0;
+    border: 1px solid rgba(139, 31, 40, 0.2);
+    border-radius: 8px;
+    background-color: rgba(139, 31, 40, 0.02);
+    overflow: hidden;
+}
+.ai-thinking summary {
+    padding: 10px 14px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #666;
+    background-color: rgba(139, 31, 40, 0.05);
+    user-select: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+.ai-thinking summary:hover {
+    background-color: rgba(139, 31, 40, 0.1);
+    color: var(--red-dark);
+}
+.thinking-content {
+    padding: 14px;
+    font-size: 0.85rem;
+    color: #777;
+    border-top: 1px solid rgba(139, 31, 40, 0.1);
+    line-height: 1.6;
+}
+.thinking-content p { margin-bottom: 8px; }
+.thinking-content p:last-child { margin-bottom: 0; }
+
+@keyframes pulse-opacity {
+    0% { opacity: 0.3; }
+    50% { opacity: 1; }
+    100% { opacity: 0.3; }
+}
+.thinking-cursor {
+    display: inline-block;
+    width: 6px;
+    height: 14px;
+    background-color: var(--red-dark);
+    margin-left: 4px;
+    vertical-align: middle;
+    animation: pulse-opacity 1s infinite;
+}
+
+/* ----------------------------------
    모바일 웹 레이아웃
 ----------------------------------- */
 @media (max-width: 1024px) {
