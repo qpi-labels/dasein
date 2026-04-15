@@ -105,7 +105,17 @@
 
             summaryBtn.innerText = 'AI 분석 중...';
             summaryBtn.disabled = true;
-            summaryContent.innerHTML = '<div class="loading-spinner"></div><p style="display:inline-block; margin:0;">Dasein; AI가 연구 동향을 분석 중입니다...</p>';
+            summaryContent.innerHTML = `
+                <div style="display: flex; align-items: flex-start; gap: 8px;">
+                    <div class="loading-spinner" style="margin-top: 4px;"></div>
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <p style="margin:0;">Dasein; AI가 연구 동향을 분석 중입니다...</p>
+                        <div class="slow-response-info">
+                            ↳ 답변이 느린가요? ⓘ
+                            <div class="tooltip-text">현재 단일 GPU 서버 환경에서 딥러닝 추론 연산을 순차적으로 수행 중입니다.<br>서버 측 작업 대기열 상태에 따라 응답까지 다소 시간이 소요될 수 있습니다.</div>
+                        </div>
+                    </div>
+                </div>`;
 
             try {
                 let resultsContext = `검색어: ${query}\n\n`;
