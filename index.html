@@ -101,18 +101,30 @@
 
         function parseWithThinking(text) {
             let outputHtml = '';
-            let parts = text.split(/<think>|<\/think>/);
+            let parts = text.split(/<(?:think|thinking)>|<\/(?:think|thinking)>/i);
 
             for (let i = 0; i < parts.length; i++) {
                 if (i % 2 === 1) {
                     const isClosed = i < parts.length - 1;
-                    const summaryText = isClosed ? 'AI 사고 과정 보기' : 'AI가 생각을 정리하고 있습니다...';
-                    const openAttr = isClosed ? '' : 'open';
+                    const summaryText = isClosed ? '사고 과정 완료' : 'AI가 생각을 정리하고 있습니다...';
+                    const spinner = isClosed ? '' : '<div class="thinking-spinner"></div>';
+                    const icon = isClosed ? '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" fill="currentColor" opacity="0.8"/></svg>' : '';
+                    
                     let contentProcess = marked.parse(parts[i]);
-                    if (!isClosed) {
-                        contentProcess += '<span class="thinking-cursor"></span>';
-                    }
-                    outputHtml += `<details class="ai-thinking" ${openAttr}><summary>${summaryText}</summary><div class="thinking-content">${contentProcess}</div></details>`;
+                    if (!isClosed) contentProcess += '<span class="thinking-cursor"></span>';
+                    
+                    outputHtml += `
+                    <details class="ai-thinking" ${isClosed ? '' : 'open'}>
+                        <summary>
+                            <div class="thinking-summary-content">
+                                ${spinner}
+                                ${icon}
+                                <span>${summaryText}</span>
+                            </div>
+                            <svg class="chevron" viewBox="0 0 24 24" width="16" height="16"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg>
+                        </summary>
+                        <div class="thinking-content">${contentProcess}</div>
+                    </details>`;
                 } else {
                     if (parts[i].trim()) {
                         outputHtml += marked.parse(parts[i]);
@@ -134,9 +146,15 @@
                     <div style="display: flex; flex-direction: column; gap: 4px;">
                         <p style="margin:0;">Dasein; AI 대기열에 있습니다. 잠시만 기다려 주세요.</p>
                         <div class="slow-response-container">
-                            <span class="slow-response-btn" onclick="const desc = this.nextElementSibling; desc.style.display = desc.style.display === 'none' ? 'block' : 'none';">↳ 답변이 느린가요?</span>
-                            <div class="slow-response-desc" style="display: none;">
-                                현재 단일 GPU 서버 환경에서 딥러닝 추론 연산을 순차적으로 수행 중입니다.<br>서버 측 작업 대기열 상태에 따라 응답까지 다소 시간이 소요될 수 있습니다.
+                            <div class="slow-response-btn" onclick="this.classList.toggle('expanded');">
+                                <svg class="info-icon" viewBox="0 0 24 24" width="14" height="14"><path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" fill="currentColor"/></svg>
+                                <span>답변이 느린가요?</span>
+                                <svg class="chevron-icon" viewBox="0 0 24 24" width="14" height="14"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg>
+                            </div>
+                            <div class="slow-response-desc-wrapper">
+                                <div class="slow-response-desc">
+                                    현재 단일 GPU 서버 환경에서 딥러닝 추론 연산을 순차적으로 수행 중입니다.<br>서버 측 작업 대기열 상태에 따라 응답까지 다소 시간이 소요될 수 있습니다.
+                                </div>
                             </div>
                         </div>
                     </div>
