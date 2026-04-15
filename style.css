@@ -301,32 +301,83 @@ input.gsc-input:focus { box-shadow: 0 0 0 3px rgba(139, 31, 40, 0.1) !important;
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ----------------------------------
-   답변 지연 안내 (답변이 느린가요?)
+   답변 지연 안내 (추론 연산 지연 안내)
 ----------------------------------- */
 .slow-response-container {
     margin-top: 4px;
     font-family: var(--font-sans);
+    border: 1px solid rgba(139, 31, 40, 0.15);
+    border-radius: 6px;
+    background-color: transparent;
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+    width: fit-content;
+    max-width: 480px;
 }
-.slow-response-btn {
-    font-size: 0.8rem;
-    color: #888;
+.slow-response-container:hover {
+    border-color: rgba(139, 31, 40, 0.3);
+    background-color: rgba(139, 31, 40, 0.01);
+}
+.slow-response-toggle {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 10px 14px;
+    background: transparent;
+    border: none;
     cursor: pointer;
-    text-decoration: underline;
-    text-underline-offset: 3px;
+    color: #666;
+    font-family: inherit;
     transition: color 0.2s ease;
 }
-.slow-response-btn:hover {
+.slow-response-toggle:hover {
     color: var(--red-dark);
 }
-.slow-response-desc {
-    margin-top: 8px;
+.toggle-icon {
+    font-size: 0.9rem;
+    margin-right: 8px;
+    color: var(--red-dark);
+    opacity: 0.8;
+}
+.toggle-text {
     font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    flex-grow: 1;
+    text-align: left;
+    margin-right: 15px;
+}
+.chevron {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: #888;
+}
+.slow-response-container.expanded .chevron {
+    transform: rotate(180deg);
+}
+.slow-response-container.expanded .slow-response-toggle {
+    border-bottom: 1px solid rgba(139, 31, 40, 0.1);
+}
+.slow-response-content-wrapper {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.slow-response-container.expanded .slow-response-content-wrapper {
+    grid-template-rows: 1fr;
+}
+.slow-response-desc-inner {
+    overflow: hidden;
+}
+.slow-response-desc {
+    padding: 12px 14px;
+    font-size: 0.8rem;
+    color: #555;
+    background-color: rgba(139, 31, 40, 0.02);
+    line-height: 1.6;
+    border-radius: 0 0 6px 6px;
+}
+.slow-response-desc b {
     color: var(--text);
-    background-color: rgba(139, 31, 40, 0.05); /* very light red */
-    border-left: 3px solid var(--red-dark);
-    padding: 10px 14px;
-    border-radius: 4px 4px 4px 0;
-    line-height: 1.5;
+    font-weight: 600;
 }
 
 /* ----------------------------------

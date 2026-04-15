@@ -132,11 +132,19 @@
                 <div style="display: flex; align-items: flex-start; gap: 8px;">
                     <div class="loading-spinner" style="margin-top: 4px;"></div>
                     <div style="display: flex; flex-direction: column; gap: 4px;">
-                        <p style="margin:0;">Dasein; AI가 연구 동향을 분석 중입니다...</p>
+                        <p style="margin:0;">Dasein; AI 대기열에 있습니다. 잠시만 기다려 주세요.</p>
                         <div class="slow-response-container">
-                            <span class="slow-response-btn" onclick="const desc = this.nextElementSibling; desc.style.display = desc.style.display === 'none' ? 'block' : 'none';">↳ 답변이 느린가요?</span>
-                            <div class="slow-response-desc" style="display: none;">
-                                현재 단일 GPU 서버 환경에서 딥러닝 추론 연산을 순차적으로 수행 중입니다.<br>서버 측 작업 대기열 상태에 따라 응답까지 다소 시간이 소요될 수 있습니다.
+                            <button class="slow-response-toggle" onclick="this.parentElement.classList.toggle('expanded')">
+                                <span class="toggle-icon">✦</span>
+                                <span class="toggle-text">추론 연산 지연 안내</span>
+                                <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </button>
+                            <div class="slow-response-content-wrapper">
+                                <div class="slow-response-desc-inner">
+                                    <div class="slow-response-desc">
+                                        현재 단일 GPU 기반으로 심층 추론을 수행 중입니다.<br>선행 요청 처리에 따른 서버 대기열 상황에 의해 <b>다소의 응답 지연</b>이 발생할 수 있습니다.
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
