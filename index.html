@@ -26,6 +26,11 @@
 
     <script async src="https://cse.google.com/cse.js?cx=b794e851ac2524ee7"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/11.1.1/marked.min.js"></script>
+    
+    <!-- KaTeX for Math Rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsEw0910//80osLsyJw02CuvkFHwreL5SwwTqXNqJ3uXlD1eDk0uG+T8T5" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Gl1mOqKx0D+4xeKEdGoLz+icB_x0z" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44O0107h2aHfe5wTq8sEEwEqP0x_aN0F312_pT" crossorigin="anonymous"></script>
 
     <link rel="stylesheet" href="style.css?v=1.6">
 </head>
@@ -134,11 +139,6 @@
                     <div style="display: flex; flex-direction: column; gap: 4px;">
                         <p style="margin:0;">Dasein; AI 대기열에 있습니다. 잠시만 기다려 주세요.</p>
                         <div class="slow-response-container">
-                            <button class="slow-response-toggle" onclick="this.parentElement.classList.toggle('expanded')">
-                                <span class="toggle-icon">✦</span>
-                                <span class="toggle-text">추론 연산 지연 안내</span>
-                                <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                            </button>
                             <div class="slow-response-content-wrapper">
                                 <div class="slow-response-desc-inner">
                                     <div class="slow-response-desc">
@@ -181,13 +181,17 @@
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
                 let fullText = '';
-
-                // 초기 로딩 메시지 제거
-                summaryContent.innerHTML = '';
+                let isFirstChunk = true;
 
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
+
+                    if (isFirstChunk) {
+                        // 초기 로딩 메시지는 첫 데이터가 도착했을 때 제거 (빈 화면 방지)
+                        summaryContent.innerHTML = '';
+                        isFirstChunk = false;
+                    }
 
                     // 받아온 바이너리 데이터를 텍스트로 변환
                     const chunk = decoder.decode(value, { stream: true });
@@ -203,6 +207,19 @@
                                 fullText += json.message.content;
                                 // 마크다운 실시간 렌더링
                                 summaryContent.innerHTML = parseWithThinking(fullText);
+
+                                // KaTeX 수식 렌더링 적용 (auto-render 확장 사용)
+                                if (window.renderMathInElement) {
+                                    renderMathInElement(summaryContent, {
+                                        delimiters: [
+                                            {left: "$$", right: "$$", display: true},
+                                            {left: "\\[", right: "\\]", display: true},
+                                            {left: "$", right: "$", display: false},
+                                            {left: "\\(", right: "\\)", display: false}
+                                        ],
+                                        throwOnError: false
+                                    });
+                                }
 
                                 // 스크롤을 아래로 유지 (선택 사항)
                                 const scrollArea = document.querySelector('.ai-summary-scroll-area');
