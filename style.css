@@ -301,51 +301,32 @@ input.gsc-input:focus { box-shadow: 0 0 0 3px rgba(139, 31, 40, 0.1) !important;
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ----------------------------------
-   툴팁 (답변이 느린가요?)
+   답변 지연 안내 (답변이 느린가요?)
 ----------------------------------- */
-.slow-response-info {
-    font-size: 0.8rem;
-    color: #666;
-    cursor: help;
-    position: relative;
-    width: fit-content;
+.slow-response-container {
+    margin-top: 4px;
     font-family: var(--font-sans);
+}
+.slow-response-btn {
+    font-size: 0.8rem;
+    color: #888;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
     transition: color 0.2s ease;
 }
-.slow-response-info:hover {
+.slow-response-btn:hover {
     color: var(--red-dark);
 }
-.tooltip-text {
-    visibility: hidden;
-    background-color: var(--text);
-    color: var(--bg);
-    text-align: left;
-    border-radius: 6px;
-    padding: 8px 12px;
-    position: absolute;
-    z-index: 100;
-    top: 100%;
-    left: 0;
+.slow-response-desc {
     margin-top: 8px;
-    opacity: 0;
-    transition: opacity 0.3s;
-    font-size: 0.75rem;
-    white-space: nowrap;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    line-height: 1.4;
-}
-.tooltip-text::after {
-    content: "";
-    position: absolute;
-    bottom: 100%;
-    left: 15px;
-    border-width: 5px;
-    border-style: solid;
-    border-color: transparent transparent var(--text) transparent;
-}
-.slow-response-info:hover .tooltip-text {
-    visibility: visible;
-    opacity: 1;
+    font-size: 0.8rem;
+    color: var(--text);
+    background-color: rgba(139, 31, 40, 0.05); /* very light red */
+    border-left: 3px solid var(--red-dark);
+    padding: 10px 14px;
+    border-radius: 4px 4px 4px 0;
+    line-height: 1.5;
 }
 
 /* ----------------------------------
