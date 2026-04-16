@@ -101,7 +101,8 @@
 
         function parseWithThinking(text, preserveOpenState = null) {
             let outputHtml = '';
-            let parts = text.split(/<think>|<\/think>/);
+            // Ollama의 다양한 추론 모델(DeepSeek, Gemma 등)의 태그 호환성 추가
+            let parts = text.split(/<(?:think|thought|reasoning)[^>]*>|<\/(?:think|thought|reasoning)>/i);
 
             for (let i = 0; i < parts.length; i++) {
                 if (i % 2 === 1) {
@@ -191,7 +192,7 @@
                 const systemPrompt = `당신은 뛰어난 학술 연구 조언가입니다. 제공된 검색 결과와 데이터를 바탕으로 다음 두 가지를 작성:
 1. 해당 주제의 핵심 개념 및 현재 학술적 동향에 대한 간략한 소개 (2-3문장 내외)
 2. 창의적이고 심도 있는 구체적인 [연구 주제 3~5가지] 추천. 검색 결과를 그대로 읊는게 아니라, 검색 결과를 종합해 창의적인 주제를 추천할 것.
-각 연구 주제에는 추천하는 이유와 구체적인 탐구 방향을 간략히 포함. 마크다운 문법을 사용하되, 인사말 없이 본론만 출력.`;
+thinking 최소화 할 것. 각 연구 주제에는 추천하는 이유와 구체적인 탐구 방향을 간략히 포함. 마크다운 문법을 사용하되, 인사말 없이 본론만 출력.`;
 
                 // Ollama API 호출 (stream: true 설정)
                 const response = await fetch(OLLAMA_CONFIG.endpoint, {
@@ -215,15 +216,16 @@
                 let fullText = '';
                 let isFirstToken = true;
 
-                // 연결 성공 후, 첫 토큰이 오기 전까지 대기 상태 (Thinking 처리 지연 대비 유지)
+                // 연결 성공 후, 첫 토큰이 오기 전까지 대기 상태 
+                // 빈 화면이나 일반 텍스트 대신, 맨 처음부터 '메뉴' 형태인 <details>를 보여줘서 토글이 작동하는 시각적 피드백을 즉시 제공합니다.
                 summaryContent.innerHTML = `
-                    <div style="display: flex; align-items: flex-start; gap: 8px; padding: 10px 0;">
-                        <div class="loading-spinner" style="margin-top: 4px; border-top-color: var(--red-dark);"></div>
-                        <div style="display: flex; flex-direction: column; gap: 4px;">
-                            <p style="margin:0; font-weight: 700; color: var(--red-dark);">모델이 생각중입니다...</p>
-                            <p style="margin:0; font-size: 0.85rem; color: #666;">잠시만 기다려주세요.</p>
+                    <details class="ai-thinking" open>
+                        <summary><span class="loading-spinner" style="width: 12px; height: 12px; margin-right: 6px; border-width: 2px;"></span>AI가 생각을 준비하고 있습니다...</summary>
+                        <div class="thinking-content">
+                            <p style="color: #666; margin: 0;">현재 모델이 추론 및 연산을 준비하는 중입니다 (첫 응답 대기중).</p>
+                            <p style="color: #888; font-size: 0.8rem; margin-top: 4px;">잠시 후 API 스트리밍이 시작되면 이곳에 구체적인 사고 과정이 출력됩니다...<span class="thinking-cursor"></span></p>
                         </div>
-                    </div>`;
+                    </details>`;
 
                 while (true) {
                     const { done, value } = await reader.read();
@@ -249,9 +251,9 @@
                                 const existingThinkingDetails = summaryContent.querySelector('.ai-thinking');
                                 let currentOpenState = existingThinkingDetails ? existingThinkingDetails.hasAttribute('open') : null;
 
-                                const previousIsClosed = fullText.includes('</think>');
+                                const previousIsClosed = /<\/(?:think|thought|reasoning)>/i.test(fullText);
                                 fullText += json.message.content;
-                                const isNowClosed = fullText.includes('</think>');
+                                const isNowClosed = /<\/(?:think|thought|reasoning)>/i.test(fullText);
 
                                 // 방금 막 생각이 끝난 시점이라면(</think> 태그 추가됨) 깔끔한 UI를 위해 자동으로 닫아줍니다.
                                 if (!previousIsClosed && isNowClosed) {
