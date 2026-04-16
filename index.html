@@ -106,7 +106,9 @@
             for (let i = 0; i < parts.length; i++) {
                 if (i % 2 === 1) {
                     const isClosed = i < parts.length - 1;
-                    const summaryText = isClosed ? 'AI 사고 과정 보기' : 'AI가 생각을 정리하고 있습니다...';
+                    const summaryText = isClosed
+                        ? 'AI 사고 과정 보기'
+                        : '<span class="loading-spinner" style="width: 12px; height: 12px; margin-right: 6px; border-width: 2px;"></span>AI가 생각을 정리하고 있습니다...';
                     const openAttr = isClosed ? '' : 'open';
                     let contentProcess = marked.parse(parts[i]);
                     if (!isClosed) {
@@ -125,6 +127,31 @@
         async function generateSummary(query, searchResults) {
             const summaryContent = document.getElementById('ai-summary-content');
             const summaryBtn = document.getElementById('btn-generate-summary');
+
+            // --- [서버 점검 시간 확인 로직] ---
+            try {
+                // WorldTimeAPI를 통해 한국 표준시(KST)를 가져옵니다 (HTTPS 환경을 위해 https 사용).
+                const timeRes = await fetch('https://worldtimeapi.org/api/timezone/Asia/Seoul');
+                if (timeRes.ok) {
+                    const timeData = await timeRes.json();
+                    const kstDate = new Date(timeData.datetime);
+                    const hours = kstDate.getHours();
+                    const minutes = kstDate.getMinutes();
+
+                    if (hours === 12 && minutes >= 0 && minutes < 5) {
+                        summaryContent.innerHTML = `
+                            <div style="padding: 15px; background: rgba(139, 31, 40, 0.05); border-radius: 8px; border: 1px solid rgba(139, 31, 40, 0.2);">
+                                <h3 style="color: var(--red-dark); margin-bottom: 8px; font-size: 1.05rem;">AI 서버 점검 중입니다.</h3>
+                                <p style="font-size: 0.9rem; color: #555; margin: 0;">매일 12:00 ~ 12:05 (KST) 사이에는 원활한 서비스 제공을 위한 서버 점검이 진행됩니다.<br>점검이 완료된 후 다시 시도해주세요.</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.warn('시간 동기화 에러:', e);
+            }
+            // ---------------------------------
 
             summaryBtn.innerText = 'AI 분석 중...';
             summaryBtn.disabled = true;
@@ -176,9 +203,17 @@
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
                 let fullText = '';
+                let isFirstToken = true;
 
-                // 초기 로딩 메시지 제거
-                summaryContent.innerHTML = '';
+                // 연결 성공 후, 첫 토큰이 오기 전까지 대기 상태 (Thinking 처리 지연 대비 유지)
+                summaryContent.innerHTML = `
+                    <div style="display: flex; align-items: flex-start; gap: 8px; padding: 10px 0;">
+                        <div class="loading-spinner" style="margin-top: 4px; border-top-color: var(--red-dark);"></div>
+                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <p style="margin:0; font-weight: 700; color: var(--red-dark);">모델이 생각을 정리하고 있습니다...</p>
+                            <p style="margin:0; font-size: 0.85rem; color: #666;">답변 생성을 시작합니다. 잠시만 기다려주세요.</p>
+                        </div>
+                    </div>`;
 
                 while (true) {
                     const { done, value } = await reader.read();
@@ -195,6 +230,10 @@
                         try {
                             const json = JSON.parse(line);
                             if (json.message && json.message.content) {
+                                if (isFirstToken) {
+                                    summaryContent.innerHTML = ''; // 첫 토큰 수신 시 UI 클리어
+                                    isFirstToken = false;
+                                }
                                 fullText += json.message.content;
                                 // 마크다운 실시간 렌더링
                                 summaryContent.innerHTML = parseWithThinking(fullText);
