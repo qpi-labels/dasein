@@ -111,8 +111,14 @@
                         : '<span class="loading-spinner" style="width: 12px; height: 12px; margin-right: 6px; border-width: 2px;"></span>AI가 생각을 정리하고 있습니다...';
 
                     // DOM 재생성 중에도 사용자의 토글(열림/닫힘) 상태를 기억합니다.
-                    // 기본값은 '닫힘'이며, 사용자가 클릭해서 열면 계속 열려있도록 유지합니다.
-                    const openAttr = preserveOpenState === true ? 'open' : '';
+                    // 생각 중(!isClosed)일 때는 기본적으로 확장(open)하여 실시간 내용을 볼 수 있게 합니다.
+                    let openAttr = '';
+                    if (!isClosed) {
+                        openAttr = preserveOpenState === false ? '' : 'open';
+                    } else {
+                        // 생각이 완료되었을 때는 사용자의 조작 상태를 우선시합니다.
+                        openAttr = preserveOpenState === true ? 'open' : '';
+                    }
 
                     let contentProcess = marked.parse(parts[i]);
                     if (!isClosed) {
@@ -238,9 +244,22 @@
                                     summaryContent.innerHTML = ''; // 첫 토큰 수신 시 UI 클리어
                                     isFirstToken = false;
                                 }
+                                // 마크다운이 실시간 렌더링되면서 전체 DOM이 덮어씌워질 때 
+                                // 사용자가 수동으로 <details>를 열거나 닫은 상태를 보존하기 위해 기존 상태를 기억합니다.
+                                const existingThinkingDetails = summaryContent.querySelector('.ai-thinking');
+                                let currentOpenState = existingThinkingDetails ? existingThinkingDetails.hasAttribute('open') : null;
+
+                                const previousIsClosed = fullText.includes('</think>');
                                 fullText += json.message.content;
-                                // 마크다운 실시간 렌더링
-                                summaryContent.innerHTML = parseWithThinking(fullText);
+                                const isNowClosed = fullText.includes('</think>');
+
+                                // 방금 막 생각이 끝난 시점이라면(</think> 태그 추가됨) 깔끔한 UI를 위해 자동으로 닫아줍니다.
+                                if (!previousIsClosed && isNowClosed) {
+                                    currentOpenState = false;
+                                }
+
+                                // 마크다운 실시간 렌더링 (저장된 토글 상태를 매개변수로 넘김)
+                                summaryContent.innerHTML = parseWithThinking(fullText, currentOpenState);
 
                                 // 스크롤을 아래로 유지 (선택 사항)
                                 const scrollArea = document.querySelector('.ai-summary-scroll-area');
