@@ -99,7 +99,7 @@
             if (currentQuery && currentResults.length > 0) generateSummary(currentQuery, currentResults);
         }
 
-        function parseWithThinking(text) {
+        function parseWithThinking(text, preserveOpenState = null) {
             let outputHtml = '';
             let parts = text.split(/<think>|<\/think>/);
 
@@ -109,7 +109,11 @@
                     const summaryText = isClosed
                         ? 'AI 사고 과정 보기'
                         : '<span class="loading-spinner" style="width: 12px; height: 12px; margin-right: 6px; border-width: 2px;"></span>AI가 생각을 정리하고 있습니다...';
-                    const openAttr = isClosed ? '' : 'open';
+
+                    // DOM 재생성 중에도 사용자의 토글(열림/닫힘) 상태를 기억합니다.
+                    // 기본값은 '닫힘'이며, 사용자가 클릭해서 열면 계속 열려있도록 유지합니다.
+                    const openAttr = preserveOpenState === true ? 'open' : '';
+
                     let contentProcess = marked.parse(parts[i]);
                     if (!isClosed) {
                         contentProcess += '<span class="thinking-cursor"></span>';
@@ -142,8 +146,8 @@
                         summaryContent.innerHTML = `
                             <div style="padding: 15px; background: rgba(139, 31, 40, 0.05); border-radius: 8px; border: 1px solid rgba(139, 31, 40, 0.2);">
                                 <h3 style="color: var(--red-dark); margin-bottom: 8px; font-size: 1.05rem;">AI 서버 점검 중입니다.</h3>
-                                <p style="font-size: 0.9rem; color: #555; margin: 0;">매일 12:00 ~ 12:05 (KST) 사이에는 원활한 서비스 제공을 위한 서버 점검이 진행됩니다.<br>점검이 완료된 후 다시 시도해주세요.</p>
-                            </div>
+                                <p style="font-size: 0.9rem; color: #555; margin: 0;">매일 24:00 ~ 24:05 (KST) 사이에는 원활한 서비스 제공을 위한 서버 점검이 진행됩니다.<br>점검이 완료된 후 다시 시도해주세요.</p>
+                             </div>
                         `;
                         return;
                     }
