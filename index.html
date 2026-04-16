@@ -140,9 +140,14 @@
 
             if (hours === 0 && minutes >= 0 && minutes < 10) {
                 summaryContent.innerHTML = `
-                    <div style="padding: 15px; background: rgba(139, 31, 40, 0.05); border-radius: 8px; border: 1px solid rgba(139, 31, 40, 0.2);">
-                        <h3 style="color: var(--red-dark); margin-bottom: 8px; font-size: 1.05rem;">서버 점검 중입니다.</h3>
-                        <p style="font-size: 0.9rem; color: #555; margin: 0;">매일 24:00 ~ 24:10 (KST) 사이에는 원활한 서비스 제공을 위한 서버 점검이 진행됩니다.<br>점검이 완료된 후 다시 시도해주세요.</p>
+                    <div class="ai-thinking">
+                        <div style="padding: 10px 14px; font-size: 0.85rem; font-weight: 600; color: var(--red-dark); background-color: rgba(139, 31, 40, 0.05); display: flex; align-items: center;">
+                            <svg viewBox="0 0 24 24" style="width:14px; height:14px; fill:currentColor; margin-right:6px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg> 서버 점검 중입니다
+                        </div>
+                        <div class="thinking-content">
+                            <p style="color: #666; margin: 0;">매일 24:00 ~ 24:10 (KST) 사이에는 원활한 서비스 제공을 위한 서버 점검이 진행됩니다.</p>
+                            <p style="color: #888; font-size: 0.8rem; margin-top: 4px;">점검이 완료된 후 다시 시도해주세요.</p>
+                        </div>
                      </div>
                 `;
                 return;
@@ -151,21 +156,13 @@
             summaryBtn.innerText = 'AI 분석 중...';
             summaryBtn.disabled = true;
             summaryContent.innerHTML = `
-                <div style="display: flex; align-items: flex-start; gap: 8px;">
-                    <div class="loading-spinner" style="margin-top: 4px;"></div>
-                    <div style="display: flex; flex-direction: column; gap: 4px;">
-                        <p style="margin:0;">Dasein; AI 대기열에 있습니다. 잠시만 기다려주세요. ..</p>
-                        <div class="slow-response-container">
-                            <div class="slow-response-btn" onclick="this.nextElementSibling.classList.toggle('show')">
-                                <svg viewBox="0 0 24 24"><path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"/></svg>
-                                답변이 지연되고 있나요?
-                            </div>
-                            <div class="slow-response-desc">
-                                현재 제한된 단일 GPU 노드에서 심층 추론을 수행하고 있습니다.<br>트래픽에 따른 작업 대기열 상태에 따라 응답 수신까지 다소 시간이 소요될 수 있습니다.
-                            </div>
-                        </div>
+                <details class="ai-thinking" open>
+                    <summary><span class="loading-spinner" style="width: 12px; height: 12px; margin-right: 6px; border-width: 2px;"></span>AI 대기열에 있습니다...</summary>
+                    <div class="thinking-content">
+                        <p style="color: #666; margin: 0;">현재 제한된 단일 GPU 노드에서 심층 추론을 수행하고 있습니다.</p>
+                        <p style="color: #888; font-size: 0.8rem; margin-top: 4px;">트래픽에 따른 작업 대기열 상태에 따라 응답 수신까지 다소 시간이 소요될 수 있습니다.</p>
                     </div>
-                </div>`;
+                </details>`;
 
             try {
                 let resultsContext = `검색어: ${query}\n\n`;
