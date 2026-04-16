@@ -341,7 +341,8 @@
                 if (extractedResults.length > 0 && extractedResults[0].title !== '') {
                     const newResultsString = JSON.stringify(extractedResults);
 
-                    if (query !== currentQuery || newResultsString !== currentResultsString) {
+                    if (query !== currentQuery) {
+                        // 완전히 새로운 검색어인 경우에만 UI를 초기화합니다.
                         currentQuery = query;
                         currentResults = extractedResults;
                         currentResultsString = newResultsString;
@@ -355,6 +356,10 @@
                         const summaryBtn = document.getElementById('btn-generate-summary');
                         summaryBtn.innerText = '연구 주제 추천받기';
                         summaryBtn.disabled = false;
+                    } else if (newResultsString !== currentResultsString) {
+                        // 검색어는 같은데 결과만 바뀐 경우(페이지 이동 등)는 데이터만 업데이트하고 답변은 유지합니다.
+                        currentResults = extractedResults;
+                        currentResultsString = newResultsString;
                     }
                 }
             }

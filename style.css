@@ -432,19 +432,44 @@ input.gsc-input:focus { box-shadow: 0 0 0 3px rgba(139, 31, 40, 0.1) !important;
 .thinking-content p { margin-bottom: 8px; }
 .thinking-content p:last-child { margin-bottom: 0; }
 
-/* 아코디언 등장 애니메이션 */
+/* 아코디언 펼쳐질 때의 스타일 및 애니메이션 */
+.ai-thinking summary {
+    display: flex;
+    align-items: center;
+    list-style: none; /* 기본 화살표 제거 */
+}
+
+.ai-thinking summary::-webkit-details-marker {
+    display: none;
+}
+
+.ai-thinking summary::before {
+    content: "→";
+    display: inline-block;
+    margin-right: 10px;
+    font-size: 0.8rem;
+    transition: transform 0.3s ease;
+    color: var(--red-dark);
+}
+
+.ai-thinking[open] summary::before {
+    transform: rotate(90deg);
+}
+
 .ai-thinking[open] .thinking-content {
-    animation: accordionReveal 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+    animation: accordionReveal 0.4s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 @keyframes accordionReveal {
     0% {
         opacity: 0;
-        transform: translateY(-8px);
+        transform: translateY(-10px) scaleY(0.95);
+        transform-origin: top;
     }
     100% {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) scaleY(1);
+        transform-origin: top;
     }
 }
 
