@@ -26,7 +26,7 @@
 
     <script async src="https://cse.google.com/cse.js?cx=b794e851ac2524ee7"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/11.1.1/marked.min.js"></script>
-    
+
     <!-- KaTeX for math rendering -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -36,6 +36,37 @@
 </head>
 
 <body>
+    <div id="selection-tooltip"
+        style="position: absolute; display: none; background: var(--red-dark); color: var(--bg); padding: 8px 14px; border-radius: 20px; font-size: 0.85rem; font-family: var(--font-sans); font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; transform: translate(-50%, -100%); margin-top: -10px;">
+        질문하기
+        <div
+            style="position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); border-width: 5px 5px 0; border-style: solid; border-color: var(--red-dark) transparent transparent transparent;">
+        </div>
+    </div>
+
+    <div id="followup-modal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center; backdrop-filter: blur(4px);">
+        <div
+            style="background:var(--bg); padding:30px; border-radius:12px; width:90%; max-width:450px; border:1.5px solid var(--red-dark); box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+            <h3
+                style="color:var(--red-dark); font-family:var(--font-sans); margin-bottom:15px; font-size:1.1rem; font-weight: 700;">
+                추가 질문하기</h3>
+            <div
+                style="background:rgba(139, 31, 40, 0.05); padding:12px 14px; border-radius:8px; margin-bottom:20px; font-size:0.85rem; color:#555; max-height:100px; overflow-y:auto; border-left: 3px solid var(--red-dark); line-height: 1.5;">
+                <em id="followup-context-preview"></em>
+            </div>
+            <input type="text" id="followup-input" placeholder="선택한 내용에 대해 궁금한 점을 입력하세요"
+                style="width:100%; padding:14px; border:1px solid rgba(139, 31, 40, 0.3); border-radius:8px; margin-bottom:20px; font-family:var(--font-sans); background:transparent; font-size:0.95rem; outline:none;">
+            <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <button onclick="document.getElementById('followup-modal').style.display='none'"
+                    style="padding:10px 20px; border-radius:30px; border:1.5px solid rgba(139, 31, 40, 0.2); background:transparent; color:var(--text); cursor:pointer; font-family:var(--font-sans); font-weight:600; transition:0.2s;">취소</button>
+                <button id="btn-submit-followup"
+                    style="padding:10px 20px; border-radius:30px; border:none; background:var(--red-dark); color:var(--bg); cursor:pointer; font-family:var(--font-sans); font-weight:600; transition:0.2s; box-shadow: 0 4px 10px rgba(139,31,40,0.2);">질문
+                    전송</button>
+            </div>
+        </div>
+    </div>
+
     <div class="paper-grain"></div>
     <div class="fixed-vertical-line"></div>
 
@@ -49,8 +80,21 @@
             </div>
 
             <div id="ai-summary-container" style="display: none;">
-                <div class="ai-summary-box">
-                    <button id="btn-generate-summary" class="summary-badge" onclick="triggerSummary()">연구 주제 추천</button>
+                <div class="ai-summary-box" id="ai-summary-box">
+                    <div class="summary-actions"
+                        style="position: absolute; top: 0; right: 20px; transform: translateY(-50%); display: flex; gap: 8px; z-index: 10;">
+                        <button id="btn-expand-summary" class="icon-badge" onclick="toggleExpandSummary()"
+                            title="화면 꽉 채우기">
+                            <svg id="expand-icon" viewBox="0 0 24 24"
+                                style="width:16px; height:16px; fill:currentColor">
+                                <path
+                                    d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+                            </svg>
+                        </button>
+                        <button id="btn-generate-summary" class="summary-badge"
+                            style="position: relative; right: auto; top: auto; transform: none;"
+                            onclick="triggerSummary()">연구 주제 추천</button>
+                    </div>
                     <div class="ai-summary-scroll-area">
                         <div id="ai-summary-content"></div>
                     </div>
@@ -99,6 +143,20 @@
         let currentQuery = '';
         let currentResults = [];
         let currentResultsString = '';
+
+        function toggleExpandSummary() {
+            const summaryBox = document.getElementById('ai-summary-box');
+            const iconPath = document.querySelector('#expand-icon path');
+            if (summaryBox.classList.contains('expanded')) {
+                summaryBox.classList.remove('expanded');
+                // 축소 아이콘으로 원복 (확대 아이콘 모양)
+                iconPath.setAttribute('d', 'M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z');
+            } else {
+                summaryBox.classList.add('expanded');
+                // 축소 방향 아이콘
+                iconPath.setAttribute('d', 'M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z');
+            }
+        }
 
         function triggerSummary() {
             if (currentQuery && currentResults.length > 0) generateSummary(currentQuery, currentResults);
@@ -327,6 +385,164 @@
             });
         });
         uiCleanerObserver.observe(document.body, { childList: true, subtree: true });
+
+        // --- [추가 질문 (툴팁 드래그) 로직] ---
+        const tooltipBtn = document.getElementById('selection-tooltip');
+        const followupModal = document.getElementById('followup-modal');
+        const followupContextPreview = document.getElementById('followup-context-preview');
+        const followupInput = document.getElementById('followup-input');
+        const btnSubmitFollowup = document.getElementById('btn-submit-followup');
+        let selectedTextContext = '';
+
+        document.addEventListener('selectionchange', () => {
+            const selection = window.getSelection();
+            if (!selection || selection.rangeCount === 0) {
+                tooltipBtn.style.display = 'none';
+                return;
+            }
+
+            const text = selection.toString().trim();
+            const summaryBox = document.getElementById('ai-summary-content');
+
+            if (text.length > 0 && summaryBox && summaryBox.contains(selection.anchorNode)) {
+                // Ignore if summary is currently loading
+                const generateBtn = document.getElementById('btn-generate-summary');
+                if (generateBtn && generateBtn.disabled) return;
+
+                const range = selection.getRangeAt(0);
+                const rect = range.getBoundingClientRect();
+                if (rect.width === 0) return;
+
+                selectedTextContext = text;
+                tooltipBtn.style.left = (rect.left + rect.width / 2) + window.scrollX + 'px';
+                tooltipBtn.style.top = (rect.top) + window.scrollY + 'px';
+                tooltipBtn.style.display = 'block';
+            } else {
+                tooltipBtn.style.display = 'none';
+            }
+        });
+
+        tooltipBtn.addEventListener('mousedown', (e) => {
+            e.preventDefault(); // 선택 풀림 방지
+            tooltipBtn.style.display = 'none';
+            followupContextPreview.innerText = `"${selectedTextContext}"`;
+            followupInput.value = '';
+            followupModal.style.display = 'flex';
+            setTimeout(() => followupInput.focus(), 100);
+        });
+
+        followupInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') btnSubmitFollowup.click();
+        });
+
+        btnSubmitFollowup.addEventListener('click', () => {
+            const question = followupInput.value.trim();
+            if (!question) return;
+            followupModal.style.display = 'none';
+            askFollowUpQuestion(selectedTextContext, question);
+        });
+
+        async function askFollowUpQuestion(contextText, userQuestion) {
+            const summaryContent = document.getElementById('ai-summary-content');
+            const scrollArea = document.querySelector('.ai-summary-scroll-area');
+
+            // Q UI 부착
+            const qDiv = document.createElement('div');
+            qDiv.style.cssText = 'margin: 24px 0 16px 0; padding: 14px 18px; background: rgba(0,0,0,0.03); border-radius: 12px; border-left: 3px solid var(--red-dark); color: var(--text);';
+            qDiv.innerHTML = `
+                <span style="font-size:0.75rem; color:var(--red-dark); font-weight:700; letter-spacing:0.05em; display:block; margin-bottom:6px;">FOLLOW-UP QUESTION</span>
+                <p style="margin:0; font-size:0.95rem; font-weight:600;">${userQuestion}</p>
+            `;
+            summaryContent.appendChild(qDiv);
+
+            // A 로딩 및 컨테이너 부착
+            const aDiv = document.createElement('div');
+            aDiv.style.cssText = 'margin: 10px 0 20px 0;';
+            aDiv.innerHTML = `
+                <details class="ai-thinking" open id="followup-thinking-indicator">
+                    <summary><span class="loading-spinner" style="width: 12px; height: 12px; margin-right: 6px; border-width: 2px;"></span>답변 생성 중...</summary>
+                    <div class="thinking-content">
+                        <p style="color: #666; margin: 0;">추가 질문에 대한 답변을 준비 중입니다.</p>
+                        <p style="color: #888; font-size: 0.8rem; margin-top: 4px;">모델이 생각중입니다...<span class="thinking-cursor"></span></p>
+                    </div>
+                </details>
+                <div class="followup-answer-content"></div>
+            `;
+            summaryContent.appendChild(aDiv);
+            scrollArea.scrollTop = scrollArea.scrollHeight;
+
+            try {
+                let resultsContext = '';
+                if (currentResults && currentResults.length > 0) {
+                    resultsContext = `\n\n[참고용 웹 검색 결과 (검색어: ${currentQuery})]\n`;
+                    currentResults.forEach((res, i) => {
+                        resultsContext += `${i + 1}. ${res.title}\n${res.snippet}\n`;
+                    });
+                }
+
+                const systemPrompt = `당신은 연구 보조 AI입니다. 사용자가 제공한 이전 답변의 특정 문맥(선택된 문맥)을 바탕으로 추가 질문을 했습니다. 선택된 문맥의 내용과 사용자의 질문을 종합하여 명확하고 정확하게 답변하세요.\n필요한 경우 제공된 [참고용 웹 검색 결과]를 바탕으로 팩트 기반의 답변을 구성하세요.\n구구절절한 인사말 없이 곧바로 핵심을 설명하고, 필요한 경우 KaTeX 수식과 마크다운을 적극 사용하세요.${resultsContext}`;
+                const userPrompt = `[선택된 문맥]\n"${contextText}"\n\n[추가 질문]\n${userQuestion}`;
+
+                const response = await fetch(OLLAMA_CONFIG.endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: OLLAMA_CONFIG.model,
+                        messages: [
+                            { role: 'system', content: systemPrompt },
+                            { role: 'user', content: userPrompt }
+                        ],
+                        stream: true
+                    })
+                });
+
+                if (!response.ok) throw new Error('Ollama 서버 연결 실패');
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let fullText = '';
+                let isFirstToken = true;
+
+                const answerContainer = aDiv.querySelector('.followup-answer-content');
+                const thinkingIndicator = aDiv.querySelector('#followup-thinking-indicator');
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value, { stream: true });
+                    const lines = chunk.split('\n');
+
+                    for (const line of lines) {
+                        if (!line.trim()) continue;
+                        try {
+                            const json = JSON.parse(line);
+                            if (json.message && json.message.content) {
+                                if (isFirstToken) {
+                                    thinkingIndicator.style.display = 'none';
+                                    isFirstToken = false;
+                                }
+
+                                const existingThinkingDetails = answerContainer.querySelector('.ai-thinking');
+                                let currentOpenState = existingThinkingDetails ? existingThinkingDetails.hasAttribute('open') : null;
+
+                                const previousIsClosed = /<\/(?:think|thought|reasoning)>/i.test(fullText);
+                                fullText += json.message.content;
+                                const isNowClosed = /<\/(?:think|thought|reasoning)>/i.test(fullText);
+
+                                if (!previousIsClosed && isNowClosed) currentOpenState = false;
+
+                                answerContainer.innerHTML = parseWithThinking(fullText, currentOpenState);
+                                scrollArea.scrollTop = scrollArea.scrollHeight;
+                            }
+                            if (json.done) break;
+                        } catch (e) { console.error("JSON 파싱 에러:", e); }
+                    }
+                }
+            } catch (error) {
+                aDiv.innerHTML += `<p style="color: #ff6b6b; margin-top: 10px;">오류 발생: ${error.message}</p>`;
+            }
+        }
     </script>
 </body>
 
