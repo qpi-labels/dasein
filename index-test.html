@@ -415,31 +415,6 @@
             askFollowUpQuestion(selectedTextContext, question);
         });
 
-        async function fetchWebContext(query) {
-            let contextStr = "";
-            try {
-                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://html.duckduckgo.com/html/?q=' + encodeURIComponent(query))}`;
-                const res = await fetch(proxyUrl, { cache: 'no-store' });
-                const data = await res.json();
-                const doc = new DOMParser().parseFromString(data.contents, 'text/html');
-                const snippets = Array.from(doc.querySelectorAll('.result__snippet')).slice(0, 3).map(el => el.textContent.trim());
-                if (snippets.length > 0) {
-                    contextStr += "[실시간 웹 검색 결과 (DuckDuckGo)]\n" + snippets.join("\n") + "\n\n";
-                    return contextStr;
-                }
-            } catch (e) { }
-
-            try {
-                const wpRes = await fetch(`https://ko.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&utf8=&format=json&origin=*`);
-                const wpData = await wpRes.json();
-                if (wpData.query && wpData.query.search.length > 0) {
-                    const wpSnippets = wpData.query.search.slice(0, 3).map(s => s.title + ": " + s.snippet.replace(/<[^>]*>/g, ''));
-                    contextStr += "[실시간 검색 결과 (Wikipedia)]\n" + wpSnippets.join("\n") + "\n\n";
-                }
-            } catch (e) { }
-            return contextStr;
-        }
-
         async function askFollowUpQuestion(contextText, userQuestion) {
             const summaryContent = document.getElementById('ai-summary-content');
             const scrollArea = document.querySelector('.ai-summary-scroll-area');
@@ -453,15 +428,15 @@
             `;
             summaryContent.appendChild(qDiv);
 
-            // A 웹 검색 중 및 로딩 컨테이너 부착
+            // A 로딩 및 컨테이너 부착
             const aDiv = document.createElement('div');
             aDiv.style.cssText = 'margin: 10px 0 20px 0;';
             aDiv.innerHTML = `
                 <details class="ai-thinking" open id="followup-thinking-indicator">
-                    <summary><span class="loading-spinner" style="width: 12px; height: 12px; margin-right: 6px; border-width: 2px;"></span>웹 정보 탐색 중...</summary>
+                    <summary><span class="loading-spinner" style="width: 12px; height: 12px; margin-right: 6px; border-width: 2px;"></span>답변 생성 중...</summary>
                     <div class="thinking-content">
-                        <p style="color: #666; margin: 0;">추가 질문과 관련된 최신 웹 정보를 찾고 있습니다.</p>
-                        <p style="color: #888; font-size: 0.8rem; margin-top: 4px;">백그라운드 검색 중...<span class="thinking-cursor"></span></p>
+                        <p style="color: #666; margin: 0;">추가 질문에 대한 답변을 준비 중입니다.</p>
+                        <p style="color: #888; font-size: 0.8rem; margin-top: 4px;">모델이 생각중입니다...<span class="thinking-cursor"></span></p>
                     </div>
                 </details>
                 <div class="followup-answer-content"></div>
@@ -470,21 +445,8 @@
             scrollArea.scrollTop = scrollArea.scrollHeight;
 
             try {
-                // 웹 검색 컨텍스트 가져오기
-                const webContext = await fetchWebContext(userQuestion);
-
-                // 검색 완료 후 LLM 답변 생성 상태로 UI 변경
-                const thinkingIndicator = aDiv.querySelector('#followup-thinking-indicator');
-                if (thinkingIndicator) {
-                    thinkingIndicator.querySelector('summary').innerHTML = '<span class="loading-spinner" style="width: 12px; height: 12px; margin-right: 6px; border-width: 2px;"></span>답변 생성 중...';
-                    thinkingIndicator.querySelector('.thinking-content').innerHTML = `
-                        <p style="color: #666; margin: 0;">추가 질문에 대한 답변을 준비 중입니다.</p>
-                        <p style="color: #888; font-size: 0.8rem; margin-top: 4px;">모델이 생각중입니다...<span class="thinking-cursor"></span></p>
-                    `;
-                }
-
-                const systemPrompt = `당신은 연구 보조 AI입니다. 사용자가 제공한 이전 답변의 특정 문맥(선택된 문맥)과 추가로 검색된 웹 정보를 바탕으로 추가 질문을 했습니다. 주어진 모든 정보들을 종합하여 명확하고 정확하게 답변하세요. 구구절절한 인사말 없이 곧바로 핵심을 설명하고, 필요한 경우 KaTeX 수식과 마크다운을 적극 사용하세요.`;
-                const userPrompt = `[선택된 문맥]\n"${contextText}"\n\n${webContext}[추가 질문]\n${userQuestion}`;
+                const systemPrompt = `당신은 연구 보조 AI입니다. 사용자가 제공한 이전 답변의 특정 문맥(선택된 문맥)을 바탕으로 추가 질문을 했습니다. 선택된 문맥의 내용과 사용자의 질문을 종합하여 명확하고 정확하게 답변하세요. 구구절절한 인사말 없이 곧바로 핵심을 설명하고, 필요한 경우 KaTeX 수식과 마크다운을 적극 사용하세요.`;
+                const userPrompt = `[선택된 문맥]\n"${contextText}"\n\n[추가 질문]\n${userQuestion}`;
 
                 const response = await fetch(OLLAMA_CONFIG.endpoint, {
                     method: 'POST',
