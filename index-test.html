@@ -36,33 +36,21 @@
 </head>
 
 <body>
-    <div id="selection-tooltip"
-        style="position: absolute; display: none; background: var(--red-dark); color: var(--bg); padding: 8px 14px; border-radius: 20px; font-size: 0.85rem; font-family: var(--font-sans); font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; transform: translate(-50%, -100%); margin-top: -10px;">
-        질문하기
-        <div
-            style="position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); border-width: 5px 5px 0; border-style: solid; border-color: var(--red-dark) transparent transparent transparent;">
-        </div>
-    </div>
+    <button id="selection-tooltip">질문하기</button>
 
-    <div id="followup-modal"
-        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center; backdrop-filter: blur(4px);">
-        <div
-            style="background:var(--bg); padding:30px; border-radius:12px; width:90%; max-width:450px; border:1.5px solid var(--red-dark); box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
-            <h3
-                style="color:var(--red-dark); font-family:var(--font-sans); margin-bottom:15px; font-size:1.1rem; font-weight: 700;">
-                추가 질문하기</h3>
-            <div
-                style="background:rgba(139, 31, 40, 0.05); padding:12px 14px; border-radius:8px; margin-bottom:20px; font-size:0.85rem; color:#555; max-height:100px; overflow-y:auto; border-left: 3px solid var(--red-dark); line-height: 1.5;">
+    <div id="followup-modal" class="followup-modal-overlay">
+        <div class="followup-modal-content">
+            <h3 class="followup-modal-header">
+                <svg viewBox="0 0 24 24" style="width:22px; height:22px; fill:currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
+                AI 심층 질문
+            </h3>
+            <div class="followup-context-box">
                 <em id="followup-context-preview"></em>
             </div>
-            <input type="text" id="followup-input" placeholder="선택한 내용에 대해 궁금한 점을 입력하세요"
-                style="width:100%; padding:14px; border:1px solid rgba(139, 31, 40, 0.3); border-radius:8px; margin-bottom:20px; font-family:var(--font-sans); background:transparent; font-size:0.95rem; outline:none;">
-            <div style="display:flex; justify-content:flex-end; gap:10px;">
-                <button onclick="document.getElementById('followup-modal').style.display='none'"
-                    style="padding:10px 20px; border-radius:30px; border:1.5px solid rgba(139, 31, 40, 0.2); background:transparent; color:var(--text); cursor:pointer; font-family:var(--font-sans); font-weight:600; transition:0.2s;">취소</button>
-                <button id="btn-submit-followup"
-                    style="padding:10px 20px; border-radius:30px; border:none; background:var(--red-dark); color:var(--bg); cursor:pointer; font-family:var(--font-sans); font-weight:600; transition:0.2s; box-shadow: 0 4px 10px rgba(139,31,40,0.2);">질문
-                    전송</button>
+            <input type="text" id="followup-input" class="followup-modal-input" placeholder="선택한 내용에 대해 궁금한 점을 자연스럽게 물어보세요...">
+            <div class="followup-modal-actions">
+                <button class="btn-followup-cancel" onclick="document.getElementById('followup-modal').classList.remove('show')">취소</button>
+                <button id="btn-submit-followup" class="btn-followup-submit">AI에게 전송</button>
             </div>
         </div>
     </div>
@@ -389,7 +377,7 @@
         document.addEventListener('selectionchange', () => {
             const selection = window.getSelection();
             if (!selection || selection.rangeCount === 0) {
-                tooltipBtn.style.display = 'none';
+                tooltipBtn.classList.remove('show');
                 return;
             }
 
@@ -408,19 +396,19 @@
                 selectedTextContext = text;
                 tooltipBtn.style.left = (rect.left + rect.width / 2) + window.scrollX + 'px';
                 tooltipBtn.style.top = (rect.top) + window.scrollY + 'px';
-                tooltipBtn.style.display = 'block';
+                tooltipBtn.classList.add('show');
             } else {
-                tooltipBtn.style.display = 'none';
+                tooltipBtn.classList.remove('show');
             }
         });
 
         tooltipBtn.addEventListener('mousedown', (e) => {
             e.preventDefault(); // 선택 풀림 방지
-            tooltipBtn.style.display = 'none';
+            tooltipBtn.classList.remove('show');
             followupContextPreview.innerText = `"${selectedTextContext}"`;
             followupInput.value = '';
-            followupModal.style.display = 'flex';
-            setTimeout(() => followupInput.focus(), 100);
+            followupModal.classList.add('show');
+            setTimeout(() => followupInput.focus(), 200);
         });
 
         followupInput.addEventListener('keydown', (e) => {
@@ -430,7 +418,7 @@
         btnSubmitFollowup.addEventListener('click', () => {
             const question = followupInput.value.trim();
             if (!question) return;
-            followupModal.style.display = 'none';
+            followupModal.classList.remove('show');
             askFollowUpQuestion(selectedTextContext, question);
         });
 
