@@ -149,11 +149,11 @@
                     const hours = kstDate.getHours();
                     const minutes = kstDate.getMinutes();
 
-                    if (hours === 0 && minutes >= 0 && minutes < 10) {
+                    if (hours === 12 && minutes >= 30 && minutes < 40) {
                         summaryContent.innerHTML = `
                             <div style="padding: 15px; background: rgba(139, 31, 40, 0.05); border-radius: 8px; border: 1px solid rgba(139, 31, 40, 0.2);">
                                 <h3 style="color: var(--red-dark); margin-bottom: 8px; font-size: 1.05rem;">AI 서버 점검 중입니다.</h3>
-                                <p style="font-size: 0.9rem; color: #555; margin: 0;">매일 24:00 ~ 24:10 (KST) 사이에는 원활한 서비스 제공을 위한 서버 점검이 진행됩니다.<br>점검이 완료된 후 다시 시도해주세요.</p>
+                                <p style="font-size: 0.9rem; color: #555; margin: 0;">매일 12:30 ~ 12:40 (KST) 사이에는 원활한 서비스 제공을 위한 서버 점검이 진행됩니다.<br>점검이 완료된 후 다시 시도해주세요.</p>
                              </div>
                         `;
                         return;
