@@ -37,7 +37,7 @@
 
 <body>
     <div id="selection-tooltip"
-        style="position: absolute; display: none; background: var(--red-dark); color: var(--bg); padding: 8px 14px; border-radius: 20px; font-size: 0.85rem; font-family: var(--font-sans); font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; transform: translate(-50%, -100%); margin-top: -10px;">
+        style="position: absolute; display: none; background: var(--red-dark); color: var(--bg); padding: 8px 14px; border-radius: 20px; font-size: 0.85rem; font-family: var(--font-sans); font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; transform: translate(-50%, -100%); margin-top: -10px; animation: tooltipPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
         질문하기
         <div
             style="position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); border-width: 5px 5px 0; border-style: solid; border-color: var(--red-dark) transparent transparent transparent;">
@@ -45,9 +45,9 @@
     </div>
 
     <div id="followup-modal"
-        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center; backdrop-filter: blur(4px);">
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center; backdrop-filter: blur(4px); animation: overlayFadeIn 0.3s ease-out forwards;">
         <div
-            style="background:var(--bg); padding:30px; border-radius:12px; width:90%; max-width:450px; border:1.5px solid var(--red-dark); box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+            style="background:var(--bg); padding:30px; border-radius:12px; width:90%; max-width:450px; border:1.5px solid var(--red-dark); box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;">
             <h3
                 style="color:var(--red-dark); font-family:var(--font-sans); margin-bottom:15px; font-size:1.1rem; font-weight: 700;">
                 추가 질문하기</h3>
@@ -349,7 +349,10 @@
                         const introSection = document.getElementById('intro-section');
                         if (introSection) introSection.style.display = 'none';
 
-                        document.getElementById('ai-summary-container').style.display = 'block';
+                        const targetContainer = document.getElementById('ai-summary-container');
+                        targetContainer.style.display = 'block';
+                        targetContainer.style.animation = 'fadeSlideUp 0.6s cubic-bezier(0.25, 1, 0.5, 1)';
+
                         document.getElementById('ai-summary-content').innerHTML = '<p style="padding: 10px 0;">위의 버튼을 눌러 연구 주제를 추천받으세요.</p>';
 
                         const summaryBtn = document.getElementById('btn-generate-summary');
@@ -448,6 +451,7 @@
 
             // Q UI 부착
             const qDiv = document.createElement('div');
+            qDiv.className = 'animate-fade-slide-up';
             qDiv.style.cssText = 'margin: 24px 0 16px 0; padding: 14px 18px; background: rgba(0,0,0,0.03); border-radius: 12px; border-left: 3px solid var(--red-dark); color: var(--text);';
             qDiv.innerHTML = `
                 <span style="font-size:0.75rem; color:var(--red-dark); font-weight:700; letter-spacing:0.05em; display:block; margin-bottom:6px;">FOLLOW-UP QUESTION</span>
@@ -457,7 +461,8 @@
 
             // A 로딩 및 컨테이너 부착
             const aDiv = document.createElement('div');
-            aDiv.style.cssText = 'margin: 10px 0 20px 0;';
+            aDiv.className = 'animate-fade-slide-up';
+            aDiv.style.cssText = 'margin: 10px 0 20px 0; animation-delay: 0.1s;';
             aDiv.innerHTML = `
                 <details class="ai-thinking" open id="followup-thinking-indicator">
                     <summary><span class="loading-spinner" style="width: 12px; height: 12px; margin-right: 6px; border-width: 2px;"></span>답변 생성 중...</summary>
