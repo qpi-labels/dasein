@@ -141,8 +141,8 @@
 
             // --- [서버 점검 시간 확인 로직] ---
             try {
-                // WorldTimeAPI를 통해 한국 표준시(KST)를 가져옵니다 (HTTPS 환경을 위해 https 사용).
-                const timeRes = await fetch('https://worldtimeapi.org/api/timezone/Asia/Seoul');
+                // sleeyax/world-time-api 모델을 사용해 한국 표준시(KST)를 가져옵니다.
+                const timeRes = await fetch('https://timeapi.world/api/timezone/Asia/Seoul');
                 if (timeRes.ok) {
                     const timeData = await timeRes.json();
                     const kstDate = new Date(timeData.datetime);
