@@ -142,7 +142,7 @@
                     const hours = kstDate.getHours();
                     const minutes = kstDate.getMinutes();
 
-                    if (hours === 12 && minutes >= 0 && minutes < 5) {
+                    if (hours === 0 && minutes >= 0 && minutes < 5) {
                         summaryContent.innerHTML = `
                             <div style="padding: 15px; background: rgba(139, 31, 40, 0.05); border-radius: 8px; border: 1px solid rgba(139, 31, 40, 0.2);">
                                 <h3 style="color: var(--red-dark); margin-bottom: 8px; font-size: 1.05rem;">AI 서버 점검 중입니다.</h3>
@@ -214,8 +214,8 @@
                     <div style="display: flex; align-items: flex-start; gap: 8px; padding: 10px 0;">
                         <div class="loading-spinner" style="margin-top: 4px; border-top-color: var(--red-dark);"></div>
                         <div style="display: flex; flex-direction: column; gap: 4px;">
-                            <p style="margin:0; font-weight: 700; color: var(--red-dark);">모델이 생각을 정리하고 있습니다...</p>
-                            <p style="margin:0; font-size: 0.85rem; color: #666;">답변 생성을 시작합니다. 잠시만 기다려주세요.</p>
+                            <p style="margin:0; font-weight: 700; color: var(--red-dark);">모델이 생각중입니다...</p>
+                            <p style="margin:0; font-size: 0.85rem; color: #666;">잠시만 기다려주세요.</p>
                         </div>
                     </div>`;
 
