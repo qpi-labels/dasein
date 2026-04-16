@@ -92,6 +92,10 @@
         };
 
         marked.setOptions({ breaks: true, gfm: true });
+        if (typeof markedKatex !== 'undefined') {
+            marked.use(markedKatex({ throwOnError: false }));
+        }
+
         let currentQuery = '';
         let currentResults = [];
         let currentResultsString = '';
