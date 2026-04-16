@@ -80,8 +80,13 @@
             </div>
 
             <div id="ai-summary-container" style="display: none;">
-                <div class="ai-summary-box">
-                    <button id="btn-generate-summary" class="summary-badge" onclick="triggerSummary()">연구 주제 추천</button>
+                <div class="ai-summary-box" id="ai-summary-box">
+                    <div class="summary-actions" style="position: absolute; top: 0; right: 20px; transform: translateY(-50%); display: flex; gap: 8px; z-index: 10;">
+                        <button id="btn-expand-summary" class="icon-badge" onclick="toggleExpandSummary()" title="화면 꽉 채우기">
+                            <svg id="expand-icon" viewBox="0 0 24 24" style="width:16px; height:16px; fill:currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+                        </button>
+                        <button id="btn-generate-summary" class="summary-badge" style="position: relative; right: auto; top: auto; transform: none;" onclick="triggerSummary()">연구 주제 추천</button>
+                    </div>
                     <div class="ai-summary-scroll-area">
                         <div id="ai-summary-content"></div>
                     </div>
@@ -130,6 +135,20 @@
         let currentQuery = '';
         let currentResults = [];
         let currentResultsString = '';
+
+        function toggleExpandSummary() {
+            const summaryBox = document.getElementById('ai-summary-box');
+            const iconPath = document.querySelector('#expand-icon path');
+            if (summaryBox.classList.contains('expanded')) {
+                summaryBox.classList.remove('expanded');
+                // 축소 아이콘으로 원복 (확대 아이콘 모양)
+                iconPath.setAttribute('d', 'M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z');
+            } else {
+                summaryBox.classList.add('expanded');
+                // 축소 방향 아이콘
+                iconPath.setAttribute('d', 'M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z');
+            }
+        }
 
         function triggerSummary() {
             if (currentQuery && currentResults.length > 0) generateSummary(currentQuery, currentResults);
@@ -445,7 +464,15 @@
             scrollArea.scrollTop = scrollArea.scrollHeight;
 
             try {
-                const systemPrompt = `당신은 연구 보조 AI입니다. 사용자가 제공한 이전 답변의 특정 문맥(선택된 문맥)을 바탕으로 추가 질문을 했습니다. 선택된 문맥의 내용과 사용자의 질문을 종합하여 명확하고 정확하게 답변하세요. 구구절절한 인사말 없이 곧바로 핵심을 설명하고, 필요한 경우 KaTeX 수식과 마크다운을 적극 사용하세요.`;
+                let resultsContext = '';
+                if (currentResults && currentResults.length > 0) {
+                    resultsContext = `\n\n[참고용 웹 검색 결과 (검색어: ${currentQuery})]\n`;
+                    currentResults.forEach((res, i) => {
+                        resultsContext += `${i + 1}. ${res.title}\n${res.snippet}\n`;
+                    });
+                }
+
+                const systemPrompt = `당신은 연구 보조 AI입니다. 사용자가 제공한 이전 답변의 특정 문맥(선택된 문맥)을 바탕으로 추가 질문을 했습니다. 선택된 문맥의 내용과 사용자의 질문을 종합하여 명확하고 정확하게 답변하세요.\n필요한 경우 제공된 [참고용 웹 검색 결과]를 바탕으로 팩트 기반의 답변을 구성하세요.\n구구절절한 인사말 없이 곧바로 핵심을 설명하고, 필요한 경우 KaTeX 수식과 마크다운을 적극 사용하세요.${resultsContext}`;
                 const userPrompt = `[선택된 문맥]\n"${contextText}"\n\n[추가 질문]\n${userQuestion}`;
 
                 const response = await fetch(OLLAMA_CONFIG.endpoint, {
