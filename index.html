@@ -69,7 +69,6 @@
 
     <div class="paper-grain"></div>
     <div class="fixed-vertical-line"></div>
-    <div id="expand-overlay" onclick="toggleExpandSummary()"></div>
 
     <div class="layout-grid">
 
@@ -82,10 +81,6 @@
 
             <div id="ai-summary-container" style="display: none;">
                 <div class="ai-summary-box" id="ai-summary-box">
-                    <div class="expanded-header">
-                        <span class="expanded-header-title">AI Research Assistant</span>
-                        <button class="expanded-header-close" onclick="toggleExpandSummary()" title="닫기">✕</button>
-                    </div>
                     <div class="summary-actions"
                         style="position: absolute; top: 0; right: 20px; transform: translateY(-50%); display: flex; gap: 8px; z-index: 10;">
                         <button id="btn-expand-summary" class="icon-badge" onclick="toggleExpandSummary()"
@@ -103,7 +98,6 @@
                     <div class="ai-summary-scroll-area">
                         <div id="ai-summary-content"></div>
                     </div>
-                    <span class="expanded-esc-hint">ESC로 닫기</span>
                 </div>
             </div>
 
@@ -152,40 +146,17 @@
 
         function toggleExpandSummary() {
             const summaryBox = document.getElementById('ai-summary-box');
-            const overlay = document.getElementById('expand-overlay');
             const iconPath = document.querySelector('#expand-icon path');
-
             if (summaryBox.classList.contains('expanded')) {
-                // 축소: 닫기 애니메이션
-                summaryBox.classList.add('collapsing');
-                overlay.classList.remove('active');
-                document.body.style.overflow = '';
-
-                summaryBox.addEventListener('animationend', function handler() {
-                    summaryBox.classList.remove('expanded', 'collapsing');
-                    summaryBox.removeEventListener('animationend', handler);
-                }, { once: true });
-
+                summaryBox.classList.remove('expanded');
+                // 축소 아이콘으로 원복 (확대 아이콘 모양)
                 iconPath.setAttribute('d', 'M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z');
             } else {
-                // 확대: 열기 애니메이션
                 summaryBox.classList.add('expanded');
-                overlay.classList.add('active');
-                document.body.style.overflow = 'hidden';
-
+                // 축소 방향 아이콘
                 iconPath.setAttribute('d', 'M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z');
             }
         }
-
-        // ESC 키로 확대 모드 닫기
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                const summaryBox = document.getElementById('ai-summary-box');
-                if (summaryBox && summaryBox.classList.contains('expanded')) {
-                    toggleExpandSummary();
-                }
-            }
-        });
 
         function triggerSummary() {
             if (currentQuery && currentResults.length > 0) generateSummary(currentQuery, currentResults);
@@ -592,6 +563,48 @@
             void target.offsetWidth;
             target.style.animation = 'btnPress 0.25s cubic-bezier(0.23, 1, 0.32, 1) forwards';
         });
+
+        // --- [패널 드래그 리사이즈 로직] ---
+        (() => {
+            const divider = document.querySelector('.fixed-vertical-line');
+            const leftPanel = document.querySelector('.left-panel');
+            const rightPanel = document.querySelector('.right-panel');
+            if (!divider || !leftPanel || !rightPanel) return;
+
+            const MIN_RATIO = 20; // 최소 20%
+            const MAX_RATIO = 70; // 최대 70%
+            let isDragging = false;
+
+            divider.addEventListener('mousedown', (e) => {
+                if (window.innerWidth <= 1024) return; // 모바일에서는 비활성화
+                e.preventDefault();
+                isDragging = true;
+                divider.classList.add('dragging');
+                document.body.style.cursor = 'col-resize';
+                document.body.style.userSelect = 'none';
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const ratio = (e.clientX / window.innerWidth) * 100;
+                const clamped = Math.min(MAX_RATIO, Math.max(MIN_RATIO, ratio));
+                const pct = clamped + '%';
+                const rightPct = (100 - clamped) + '%';
+
+                divider.style.left = pct;
+                leftPanel.style.width = pct;
+                rightPanel.style.marginLeft = pct;
+                rightPanel.style.width = rightPct;
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (!isDragging) return;
+                isDragging = false;
+                divider.classList.remove('dragging');
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+            });
+        })();
     </script>
 </body>
 
