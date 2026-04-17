@@ -577,6 +577,112 @@ input.gsc-input:focus { box-shadow: 0 0 0 3px rgba(139, 31, 40, 0.1) !important;
 }
 
 /* ----------------------------------
+   좌측 패널 좁아짐 대응 (드래그 리사이즈)
+----------------------------------- */
+.left-panel.narrow {
+    padding: 6vh 3vw;
+}
+
+.left-panel.narrow .main-title {
+    font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+    margin-bottom: 1.5rem;
+}
+
+.left-panel.narrow .search-container {
+    margin-bottom: 20px;
+}
+
+.left-panel.narrow input.gsc-input {
+    height: 40px !important;
+    font-size: 0.9rem !important;
+    padding: 0 16px !important;
+}
+
+.left-panel.narrow .ai-summary-box {
+    border-radius: 8px;
+}
+
+.left-panel.narrow .summary-actions {
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.left-panel.narrow .summary-badge {
+    font-size: 0.75rem;
+    padding: 5px 12px;
+}
+
+.left-panel.narrow .icon-badge {
+    width: 26px;
+    height: 26px;
+}
+
+.left-panel.narrow .icon-badge svg {
+    width: 13px;
+    height: 13px;
+}
+
+.left-panel.narrow .ai-summary-scroll-area {
+    max-height: 35vh;
+    padding: 8px 16px 16px 16px;
+}
+
+.left-panel.narrow #ai-summary-content {
+    font-size: 0.85rem;
+    line-height: 1.6;
+}
+
+.left-panel.narrow .vhs-footer {
+    bottom: 3vh;
+    left: 3vw;
+    right: 3vw;
+}
+
+.left-panel.narrow .vhs-label-bar {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+}
+
+.left-panel.narrow .s-3 { height: 12px; }
+.left-panel.narrow .s-2 { height: 8px; }
+.left-panel.narrow .s-1 { height: 4px; }
+
+/* 매우 좁은 상태 (.very-narrow) */
+.left-panel.very-narrow {
+    padding: 4vh 2vw;
+}
+
+.left-panel.very-narrow .main-title {
+    font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+    margin-bottom: 1rem;
+}
+
+.left-panel.very-narrow .summary-actions {
+    right: 8px !important;
+}
+
+.left-panel.very-narrow .summary-badge {
+    font-size: 0.65rem;
+    padding: 4px 8px;
+    letter-spacing: 0;
+}
+
+.left-panel.very-narrow .ai-summary-scroll-area {
+    max-height: 30vh;
+    padding: 6px 10px 12px 10px;
+}
+
+.left-panel.very-narrow #ai-summary-content {
+    font-size: 0.8rem;
+    line-height: 1.5;
+}
+
+.left-panel.very-narrow .vhs-footer .brand-name,
+.left-panel.very-narrow .vhs-footer #ollama-status {
+    font-size: 0.65rem;
+}
+
+/* ----------------------------------
    모바일 웹 레이아웃
 ----------------------------------- */
 @media (max-width: 1024px) {
@@ -588,10 +694,11 @@ input.gsc-input:focus { box-shadow: 0 0 0 3px rgba(139, 31, 40, 0.1) !important;
     }
     
     .fixed-vertical-line { display: none; }
+    .expanded-overlay { display: none !important; }
     
     .left-panel {
         position: relative;
-        width: 100%;
+        width: 100% !important;
         height: auto;
         padding: 40px 24px 20px 24px;
         border-bottom: 2px solid var(--red-main);
@@ -600,8 +707,8 @@ input.gsc-input:focus { box-shadow: 0 0 0 3px rgba(139, 31, 40, 0.1) !important;
     }
     
     .right-panel {
-        margin-left: 0;
-        width: 100%;
+        margin-left: 0 !important;
+        width: 100% !important;
         min-height: auto;
         padding: 20px 24px 60px 24px;
     }
@@ -637,5 +744,25 @@ input.gsc-input:focus { box-shadow: 0 0 0 3px rgba(139, 31, 40, 0.1) !important;
     .ai-summary-box.expanded .ai-summary-scroll-area {
         max-height: calc(85vh - 70px);
         padding: 50px 24px 24px 24px;
+    }
+
+    /* 모바일에서 인라인 스타일 강제 오버라이드 */
+    .left-panel.narrow,
+    .left-panel.very-narrow {
+        padding: 40px 24px 20px 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-title {
+        font-size: 2.5rem;
+    }
+    
+    .intro-heading {
+        font-size: 1.8rem !important;
+    }
+    
+    .intro-desc {
+        font-size: 0.95rem !important;
     }
 }

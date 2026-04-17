@@ -594,10 +594,17 @@
 
             const MIN_RATIO = 20; // 최소 20%
             const MAX_RATIO = 70; // 최대 70%
+            const NARROW_THRESHOLD = 35; // 좁음 기준 (%)
+            const VERY_NARROW_THRESHOLD = 25; // 매우 좁음 기준 (%)
             let isDragging = false;
 
+            function updateNarrowClass(ratio) {
+                leftPanel.classList.toggle('very-narrow', ratio <= VERY_NARROW_THRESHOLD);
+                leftPanel.classList.toggle('narrow', ratio <= NARROW_THRESHOLD && ratio > VERY_NARROW_THRESHOLD);
+            }
+
             divider.addEventListener('mousedown', (e) => {
-                if (window.innerWidth <= 1024) return; // 모바일에서는 비활성화
+                if (window.innerWidth <= 1024) return;
                 e.preventDefault();
                 isDragging = true;
                 divider.classList.add('dragging');
@@ -616,6 +623,8 @@
                 leftPanel.style.width = pct;
                 rightPanel.style.marginLeft = pct;
                 rightPanel.style.width = rightPct;
+
+                updateNarrowClass(clamped);
             });
 
             document.addEventListener('mouseup', () => {
@@ -624,6 +633,17 @@
                 divider.classList.remove('dragging');
                 document.body.style.cursor = '';
                 document.body.style.userSelect = '';
+            });
+
+            // 모바일 전환 시 인라인 스타일 초기화
+            window.addEventListener('resize', () => {
+                if (window.innerWidth <= 1024) {
+                    leftPanel.style.width = '';
+                    rightPanel.style.marginLeft = '';
+                    rightPanel.style.width = '';
+                    divider.style.left = '';
+                    leftPanel.classList.remove('narrow', 'very-narrow');
+                }
             });
         })();
     </script>
