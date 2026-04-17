@@ -548,6 +548,21 @@
                 aDiv.innerHTML += `<p style="color: #ff6b6b; margin-top: 10px;">오류 발생: ${error.message}</p>`;
             }
         }
+        // --- [버튼 Fade 애니메이션 범용 처리] ---
+        // CSS :active 애니메이션이 적용되지 않는 인라인 스타일 버튼 및 툴팁을 포함한
+        // 모든 버튼 요소에 클릭 시 btnPress 애니메이션을 적용합니다.
+        document.addEventListener('click', (e) => {
+            const target = e.target.closest('button, [id="selection-tooltip"]');
+            if (!target || target.disabled) return;
+            // 이미 animation이 CSS :active로 처리되는 클래스는 건너뜁니다.
+            const managedClasses = ['summary-badge', 'icon-badge', 'btn', 'slow-response-btn'];
+            if (managedClasses.some(cls => target.classList.contains(cls))) return;
+            // 인라인 스타일 버튼에 애니메이션 주입
+            target.style.animation = 'none';
+            // reflow 강제 후 애니메이션 재시작
+            void target.offsetWidth;
+            target.style.animation = 'btnPress 0.25s cubic-bezier(0.23, 1, 0.32, 1) forwards';
+        });
     </script>
 </body>
 
