@@ -69,6 +69,7 @@
 
     <div class="paper-grain"></div>
     <div class="fixed-vertical-line"></div>
+    <div class="expanded-overlay" id="expanded-overlay"></div>
 
     <div class="layout-grid">
 
@@ -146,17 +147,37 @@
 
         function toggleExpandSummary() {
             const summaryBox = document.getElementById('ai-summary-box');
+            const overlay = document.getElementById('expanded-overlay');
             const iconPath = document.querySelector('#expand-icon path');
-            if (summaryBox.classList.contains('expanded')) {
+            const isExpanded = summaryBox.classList.contains('expanded');
+
+            if (isExpanded) {
+                // 축소
                 summaryBox.classList.remove('expanded');
-                // 축소 아이콘으로 원복 (확대 아이콘 모양)
+                overlay.style.animation = 'overlayFadeOut 0.25s ease forwards';
+                setTimeout(() => { overlay.style.display = 'none'; }, 250);
                 iconPath.setAttribute('d', 'M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z');
             } else {
+                // 확대
                 summaryBox.classList.add('expanded');
-                // 축소 방향 아이콘
+                overlay.style.display = 'block';
+                overlay.style.animation = 'overlayFadeIn 0.3s ease forwards';
                 iconPath.setAttribute('d', 'M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z');
             }
         }
+
+        // 오버레이 클릭 시 축소
+        document.getElementById('expanded-overlay').addEventListener('click', toggleExpandSummary);
+
+        // ESC 키로 축소
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const summaryBox = document.getElementById('ai-summary-box');
+                if (summaryBox && summaryBox.classList.contains('expanded')) {
+                    toggleExpandSummary();
+                }
+            }
+        });
 
         function triggerSummary() {
             if (currentQuery && currentResults.length > 0) generateSummary(currentQuery, currentResults);

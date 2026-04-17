@@ -218,21 +218,78 @@ input.gsc-input:focus { box-shadow: 0 0 0 3px rgba(139, 31, 40, 0.1) !important;
 .icon-badge:active { animation: btnPress 0.25s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
 
 /* AI 요약창 확대 기믹 추가 */
-.ai-summary-box.expanded {
-    position: absolute;
+.ai-summary-box {
+    transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+                box-shadow 0.4s ease,
+                border-color 0.3s ease;
+}
+
+.expanded-overlay {
+    display: none;
+    position: fixed;
     top: 0; left: 0;
     width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 199;
+    animation: overlayFadeIn 0.3s ease forwards;
+}
+
+@keyframes overlayFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes overlayFadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+.ai-summary-box.expanded {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(900px, 85vw);
+    height: min(80vh, 700px);
     z-index: 200;
-    border-radius: 0;
-    border: none;
-    border-right: 2px solid var(--red-main);
+    border-radius: 16px;
+    border: 1.5px solid rgba(139, 31, 40, 0.3);
     background-color: var(--bg);
-    padding: 8vh 4vw;
+    padding: 0;
     margin: 0;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25),
+                0 8px 20px rgba(139, 31, 40, 0.1);
+    animation: expandIn 0.35s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+@keyframes expandIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.92);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+.ai-summary-box.expanded .summary-actions {
+    position: absolute;
+    top: 20px; right: 24px;
+    transform: none;
 }
 
 .ai-summary-box.expanded .ai-summary-scroll-area {
-    max-height: calc(100vh - 16vh - 40px);
+    max-height: calc(min(80vh, 700px) - 70px);
+    padding: 60px 40px 30px 40px;
+    mask-image: linear-gradient(to bottom, transparent 0%, black 3%, black 97%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 3%, black 97%, transparent 100%);
+}
+
+.ai-summary-box.expanded #ai-summary-content {
+    font-size: 1.05rem;
+    line-height: 1.85;
 }
 
 .ai-summary-scroll-area {
@@ -572,10 +629,13 @@ input.gsc-input:focus { box-shadow: 0 0 0 3px rgba(139, 31, 40, 0.1) !important;
 
     .ai-summary-box.expanded {
         position: fixed;
-        border-right: none;
-        padding: 40px 24px 20px 24px;
+        width: 95vw;
+        height: 85vh;
+        border-radius: 12px;
+        padding: 0;
     }
     .ai-summary-box.expanded .ai-summary-scroll-area {
-        max-height: calc(100vh - 100px);
+        max-height: calc(85vh - 70px);
+        padding: 50px 24px 24px 24px;
     }
 }
